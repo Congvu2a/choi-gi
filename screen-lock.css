@@ -1,0 +1,22 @@
+/* Projection screen: display only. The clear shield blocks pointer events from reaching YouTube. */
+.room-projection {
+  pointer-events: auto !important;
+}
+
+.room-projection iframe {
+  pointer-events: none !important;
+}
+
+.projection-shield {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  background: transparent;
+  pointer-events: auto;
+  cursor: default;
+  touch-action: none;
+}
+
+.projection-hint {
+  pointer-events: none !important;
+}

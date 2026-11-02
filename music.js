@@ -84,7 +84,7 @@
       ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(item.id)}`
       : `https://www.youtube.com/embed/${encodeURIComponent(item.id)}`;
     const target = new URL(base);
-    const params = new URLSearchParams({ autoplay: '1', playsinline: '1', rel: '0', enablejsapi: '1', origin: location.origin });
+    const params = new URLSearchParams({ autoplay: '1', playsinline: '1', rel: '0', enablejsapi: '1', origin: location.origin, controls: '0', disablekb: '1', fs: '0' });
     params.forEach((value, key) => target.searchParams.set(key, value));
     player.referrerPolicy = 'no-referrer-when-downgrade';
     player.src = target.toString();
