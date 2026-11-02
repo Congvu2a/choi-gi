@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101019" />
+  <title>Chơi Gì? — Mini game cùng bạn bè</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="Chơi Gì trang chủ"><span class="brand-mark">✳</span><span>chơi gì<span class="brand-dot">.</span></span></a>
+    <nav class="nav-links"><a class="active" href="#home">Khám phá</a><a href="#games">Trò chơi</a><a href="#about">Cách chơi</a></nav>
+    <button class="profile-button" id="profileBtn"><span class="online-dot"></span><span>Khách chơi</span><span class="avatar">✦</span></button>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="sparkle">✦</span> GÓC GIẢI TRÍ CỦA BẠN</div>
+        <h1>Rảnh một chút,<br>vui <span class="gradient-text">cả buổi.</span></h1>
+        <p class="hero-description">Những mini game nhỏ xinh cho những phút nghỉ ngơi. Chọn một trò, rủ hội bạn và bắt đầu thôi!</p>
+        <div class="hero-actions"><a class="button button-primary" href="#games">Khám phá trò chơi <span>↗</span></a><div class="players"><div class="avatar-stack"><i>🐻</i><i>🐸</i><i>🐱</i></div><span><b>1.2k+</b> lượt chơi hôm nay</span></div></div>
+      </div>
+      <div class="hero-art" aria-label="Minh họa các trò chơi"><div class="hero-orbit orbit-a"></div><div class="hero-orbit orbit-b"></div><div class="hero-sticker sticker-star">✦</div><div class="hero-sticker sticker-heart">♥</div><div class="hero-sticker sticker-dice">⚄</div><div class="hero-card card-back"></div><div class="hero-card card-mid"><span>☁️</span></div><div class="hero-card card-front"><div class="game-preview-icon">🎮</div><div class="preview-label">PLAY TIME</div><div class="preview-dots"><i></i><i></i><i></i></div></div><div class="hero-caption"><span class="caption-icon">♫</span><span>chơi vui, chill thôi!</span><span>✦</span></div></div>
+    </section>
+
+    <section class="games-section" id="games">
+      <div class="section-heading"><div><div class="eyebrow">THƯ VIỆN TRÒ CHƠI</div><h2>Chọn mood, chọn game <span>✳</span></h2></div><a class="see-all" href="#games">Tất cả trò chơi <span>→</span></a></div>
+      <div class="toolbar"><div class="filters" role="tablist"><button class="filter active" data-filter="all">Tất cả <span>06</span></button><button class="filter" data-filter="quick">Chơi nhanh</button><button class="filter" data-filter="brain">Động não</button><button class="filter" data-filter="friends">Cùng bạn bè</button></div><label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Tìm trò chơi..." aria-label="Tìm trò chơi"></label></div>
+      <div class="game-grid" id="gameGrid">
+        <article class="game-card featured" data-tags="quick friends" data-title="đoán số bí ẩn"><div class="card-visual visual-number"><span class="visual-orbit">✦</span><div class="number-bubbles"><i>?</i><i>7</i><i>?</i></div><span class="visual-scribble">TỚ ĐANG NGHĨ...</span></div><div class="card-info"><div><div class="card-category">CHƠI NHANH <span>· 1–2 người</span></div><h3>Đoán số bí ẩn</h3></div><button class="play-button" data-game="guess" aria-label="Chơi Đoán số bí ẩn">↗</button></div></article>
+        <article class="game-card" data-tags="quick friends" data-title="oẳn tù tì"><div class="card-visual visual-rps"><div class="rps-hand">✊</div><span class="vs-bubble">VS</span><div class="rps-hand hand-right">✌️</div><span class="visual-scribble">1... 2... 3!</span></div><div class="card-info"><div><div class="card-category">ĐỐI KHÁNG <span>· 1 người</span></div><h3>Oẳn tù tì</h3></div><button class="play-button" data-game="rps" aria-label="Chơi Oẳn tù tì">↗</button></div></article>
+        <article class="game-card" data-tags="brain" data-title="lật thẻ trí nhớ"><div class="card-visual visual-memory"><div class="memory-tile">✦</div><div class="memory-tile">?</div><div class="memory-tile">☀</div><div class="memory-tile">?</div><div class="memory-tile">?</div><div class="memory-tile">✦</div></div><div class="card-info"><div><div class="card-category">ĐỘNG NÃO <span>· 1 người</span></div><h3>Lật thẻ trí nhớ</h3></div><button class="play-button" data-game="memory" aria-label="Chơi Lật thẻ trí nhớ">↗</button></div></article>
+        <article class="game-card" data-tags="quick" data-title="nhanh mắt nhanh tay"><div class="card-visual visual-reaction"><span class="reaction-ring"></span><span class="reaction-bolt">⚡</span><span class="reaction-text">NHANH!</span><span class="tiny-star">✦</span></div><div class="card-info"><div><div class="card-category">PHẢN XẠ <span>· 1 người</span></div><h3>Nhanh mắt nhanh tay</h3></div><button class="play-button" data-game="reaction" aria-label="Chơi Nhanh mắt nhanh tay">↗</button></div></article>
+        <article class="game-card" data-tags="brain friends" data-title="kéo búa bao 3x3"><div class="card-visual visual-tictactoe"><div class="ttt-grid"><i>×</i><i></i><i>○</i><i>○</i><i>×</i><i></i><i></i><i>○</i><i>×</i></div><span class="ttt-spark">✧</span></div><div class="card-info"><div><div class="card-category">ĐẤU TRÍ <span>· 2 người</span></div><h3>Cờ ca-rô mini</h3></div><button class="play-button" data-game="ttt" aria-label="Chơi Cờ ca-rô mini">↗</button></div></article>
+        <article class="game-card coming-card" data-tags="friends" data-title="vẽ đoán chữ"><div class="card-visual visual-coming"><span>✎</span><i>?</i><b>✦</b></div><div class="card-info"><div><div class="card-category">SẮP RA MẮT <span>· nhiều người</span></div><h3>Vẽ đoán chữ</h3></div><span class="soon-badge">Sắp có</span></div></article>
+      </div>
+      <div class="empty-state" id="emptyState" hidden>Chưa tìm thấy trò chơi phù hợp. Thử từ khóa khác nhé!</div>
+    </section>
+    <section class="invite-banner" id="about"><div class="invite-icon">🪩</div><div><h2>Vui hơn khi có hội!</h2><p>Gửi link cho bạn bè và cùng nhau tạo kỷ niệm nhé.</p></div><button class="button button-light" id="shareBtn">Chia sẻ trang <span>↗</span></button><div class="banner-spark">✦</div></section>
+    <footer><a class="brand footer-brand" href="#home"><span class="brand-mark">✳</span><span>chơi gì<span class="brand-dot">.</span></span></a><span>Một góc nhỏ để vui hơn mỗi ngày ☻</span><span>© 2025 Chơi Gì</span></footer>
+  </main>
+
+  <div class="modal" id="gameModal" aria-hidden="true"><div class="modal-backdrop" data-close></div><section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="modal-close" data-close aria-label="Đóng">×</button><div class="modal-kicker">CHƠI GÌ? <span>✳</span></div><h2 id="modalTitle">Trò chơi</h2><div class="game-area" id="gameArea"></div></section></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
