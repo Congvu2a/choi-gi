@@ -10,6 +10,11 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="room.css" />
+  <link rel="stylesheet" href="room3d.css" />
+  <link rel="stylesheet" href="immersive.css" />
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
+  </script>
 </head>
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -36,7 +41,7 @@
           <div class="room-sign"><span>⌂</span> CHILL ZONE</div>
           <div class="room-activity"><span class="activity-dot"></span><span id="roomMessage">Chào mừng! Đi tới một khu game để chơi.</span></div>
         </div>
-        <div class="room-controls"><div class="move-controls" aria-label="Điều khiển nhân vật"><button data-move="up" aria-label="Đi lên">↑</button><div><button data-move="left" aria-label="Đi sang trái">←</button><button data-move="down" aria-label="Đi xuống">↓</button><button data-move="right" aria-label="Đi sang phải">→</button></div></div><div class="control-help"><span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="help-divider">hoặc phím mũi tên để đi</span><span class="keycap key-e">E</span><span class="help-divider">chơi game gần nhất</span></div><button class="interact-button" id="interactBtn"><span>↗</span> Chơi ở đây</button></div>
+        <div class="room-controls"><div class="move-controls" aria-label="Điều khiển nhân vật"><button data-move="up" aria-label="Đi lên">↑</button><div><button data-move="left" aria-label="Đi sang trái">←</button><button data-move="down" aria-label="Đi xuống">↓</button><button data-move="right" aria-label="Đi sang phải">→</button></div></div><div class="control-help"><span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="help-divider">hoặc phím mũi tên để đi</span><span class="keycap key-e">E</span><span class="help-divider">chơi game gần nhất</span></div><button class="fullscreen-button" id="fullscreenBtn" aria-label="Bật toàn màn hình" title="Toàn màn hình">⛶</button><button class="interact-button" id="interactBtn"><span>↗</span> Chơi ở đây</button></div>
       </div>
       <div class="room-footnote"><span>✦</span> Chọn một máy game hoặc di chuyển nhân vật đến gần rồi nhấn <b>E</b>.</div>
     </section>
@@ -70,6 +75,6 @@
   <div class="modal" id="gameModal" aria-hidden="true"><div class="modal-backdrop" data-close></div><section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="modal-close" data-close aria-label="Đóng">×</button><div class="modal-kicker">CHƠI GÌ? <span>✳</span></div><h2 id="modalTitle">Trò chơi</h2><div class="game-area" id="gameArea"></div></section></div>
   <div class="toast" id="toast" role="status"></div>
   <script src="script.js"></script>
-  <script src="room.js"></script>
+  <script type="module" src="room3d.js"></script>
 </body>
 </html>
