@@ -11,7 +11,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#252033');
 scene.fog = new THREE.Fog('#252033', 25, 45);
 const camera = new THREE.PerspectiveCamera(43, 1, 0.1, 80);
-camera.position.set(0, 13.8, 24);
+camera.position.set(0, 14.2, 26);
 camera.lookAt(0, 2.1, 0);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
@@ -39,7 +39,7 @@ const wallMat = mat('#51415f');
 const trimMat = mat('#d290a7', 0.45, { emissive: '#4c243f', emissiveIntensity: 0.35 });
 const animatedDecor = [];
 const loungeRoot = new THREE.Group(); loungeRoot.name='sanh-game'; scene.add(loungeRoot);
-const floor = new THREE.Mesh(new THREE.BoxGeometry(26, 0.35, 18), floorMat);
+const floor = new THREE.Mesh(new THREE.BoxGeometry(30, 0.35, 18), floorMat);
 floor.position.set(0, -0.22, 0); floor.receiveShadow = true; loungeRoot.add(floor);
 
 function box(parent, w, h, d, material, x, y, z, cast = true) {
@@ -47,12 +47,12 @@ function box(parent, w, h, d, material, x, y, z, cast = true) {
   mesh.position.set(x, y, z); mesh.castShadow = cast; mesh.receiveShadow = true; parent.add(mesh); return mesh;
 }
 // Three enclosing walls make the lobby read as a real room while leaving the front open to the camera.
-box(loungeRoot, 26, 7, 0.38, wallMat, 0, 3.28, -9.05);
-box(loungeRoot, 0.38, 7, 18, mat('#443750'), -12.95, 3.28, 0);
-box(loungeRoot, 0.38, 7, 18, mat('#443750'), 12.95, 3.28, 0);
-box(loungeRoot, 26, 0.18, 0.5, trimMat, 0, 0.05, -8.78, false);
-box(loungeRoot, 0.5, 0.18, 18, trimMat, -12.72, 0.05, 0, false);
-box(loungeRoot, 0.5, 0.18, 18, trimMat, 12.72, 0.05, 0, false);
+box(loungeRoot, 30, 7, 0.38, wallMat, 0, 3.28, -9.05);
+box(loungeRoot, 0.38, 7, 18, mat('#443750'), -14.95, 3.28, 0);
+box(loungeRoot, 0.38, 7, 18, mat('#443750'), 14.95, 3.28, 0);
+box(loungeRoot, 30, 0.18, 0.5, trimMat, 0, 0.05, -8.78, false);
+box(loungeRoot, 0.5, 0.18, 18, trimMat, -14.72, 0.05, 0, false);
+box(loungeRoot, 0.5, 0.18, 18, trimMat, 14.72, 0.05, 0, false);
 
 // Big sunset window, mullions, and a low sill on the back wall.
 const windowGlow = mat('#f4a6c2', 0.24, { emissive: '#dc7fa8', emissiveIntensity: 0.62 });
@@ -63,15 +63,15 @@ box(loungeRoot, 4.7, 0.12, 0.12, mat('#563a59'), -8.0, 4.58, -8.58, false);
 box(loungeRoot, 5.15, 0.2, 0.55, mat('#32243d'), -8.0, 2.79, -8.45);
 
 // Giant projection screen. The HTML YouTube iframe is projected over this 3D panel below.
-const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 4.35, -8.70); loungeRoot.add(videoScreenGroup);
-box(videoScreenGroup, 7.8, 4.35, 0.3, mat('#211a2c'), 0, 0, 0, false);
-const videoScreenSurface = box(videoScreenGroup, 7.48, 4.03, 0.08, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.18, false);
-for (const x of [-3.85, 3.85]) box(videoScreenGroup, 0.14, 4.5, 0.22, mat('#d6ff72',0.3,{emissive:'#9fcb42',emissiveIntensity:0.6}),x,0,0.12,false);
-box(videoScreenGroup, 8.0, 0.15, 0.24, mat('#d6ff72',0.3,{emissive:'#9fcb42',emissiveIntensity:0.6}),0,-2.22,0.12,false);
+const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 3.95, -8.70); loungeRoot.add(videoScreenGroup);
+box(videoScreenGroup, 10.1, 5.55, 0.3, mat('#211a2c'), 0, 0, 0, false);
+const videoScreenSurface = box(videoScreenGroup, 9.76, 5.22, 0.08, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.18, false);
+for (const x of [-5.0, 5.0]) box(videoScreenGroup, 0.14, 5.7, 0.22, mat('#d6ff72',0.3,{emissive:'#9fcb42',emissiveIntensity:0.6}),x,0,0.12,false);
+box(videoScreenGroup, 10.3, 0.15, 0.24, mat('#d6ff72',0.3,{emissive:'#9fcb42',emissiveIntensity:0.6}),0,-2.82,0.12,false);
 const screenStand = new THREE.Group(); screenStand.position.set(0, 0, -8.35); loungeRoot.add(screenStand);
-box(screenStand, 0.36, 2.1, 0.36, mat('#342a43'), -1.6, 1.05, 0);
-box(screenStand, 0.36, 2.1, 0.36, mat('#342a43'), 1.6, 1.05, 0);
-box(screenStand, 3.9, 0.15, 1.0, mat('#241c30'), 0, 0.12, 0);
+box(screenStand, 0.36, 1.9, 0.36, mat('#342a43'), -2.0, 0.95, 0);
+box(screenStand, 0.36, 1.9, 0.36, mat('#342a43'), 2.0, 0.95, 0);
+box(screenStand, 4.8, 0.15, 1.0, mat('#241c30'), 0, 0.12, 0);
 const projectionFrame = document.createElement('div'); projectionFrame.className = 'room-projection'; projectionFrame.setAttribute('aria-label','Video đang chiếu trên màn hình lớn');
 const projectionHint = document.createElement('div'); projectionHint.className = 'projection-hint'; projectionHint.innerHTML = '<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>'; projectionFrame.append(projectionHint); host.append(projectionFrame);
 const musicPlayer = document.querySelector('#youtubePlayer'); projectionFrame.append(musicPlayer);
@@ -105,7 +105,7 @@ function plant(x, z, scale = 1) {
     const a = i * Math.PI / 3; leaf.position.set(Math.cos(a) * 0.38, 1.08 + (i % 3) * 0.13, Math.sin(a) * 0.35); leaf.scale.set(0.62, 1.45, 0.55); leaf.rotation.z = -Math.cos(a) * 0.45; leaf.castShadow = true; g.add(leaf); animatedDecor.push({type:'leaf',mesh:leaf,base:leaf.rotation.z,phase:i*0.9+x});
   }
 }
-plant(-11.3, -7.6, 1.12); plant(11.3, -7.6, 1.15); plant(-11.3, 6.2, 0.9); plant(11.3, 6.0, 0.92);
+plant(-13.3, -7.6, 1.12); plant(13.3, -7.6, 1.15); plant(-13.3, 6.2, 0.9); plant(13.3, 6.0, 0.92);
 
 // A soft sofa, throw pillows, and a little pouf make the lounge feel lived in.
 const sofa = new THREE.Group(); sofa.position.set(5.0, 0, -6.4); loungeRoot.add(sofa);
@@ -126,18 +126,18 @@ const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.68,0.58,12),mat('#
 const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.1,12),mat('#efb5a1')); poufTop.position.set(-3.4,0.62,5.2); poufTop.castShadow=true; loungeRoot.add(poufTop);
 
 // Vinyl wall art and warm fairy lights bring color into the back wall.
-const wirePoints=[];for(let i=0;i<=24;i++){const x=-12+i;wirePoints.push(new THREE.Vector3(x,6.78-Math.sin(i/24*Math.PI)*0.34,-8.56))}const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints(wirePoints),new THREE.LineBasicMaterial({color:'#e2b8bb'}));loungeRoot.add(wire);
-for(let i=0;i<13;i++){const x=-11.5+i*1.92,y=6.78-Math.sin(i/12*Math.PI)*0.34;const bulb=glowingSphere(i%3===0?'#d6ff8c':'#ffc58f',0.8,x,y-0.08,-8.5,0.09);const glow=new THREE.PointLight(i%3===0?'#d6ff8c':'#ffc58f',0.3,1.5);glow.position.set(x,y-0.1,-8.2);loungeRoot.add(glow)}
+const wirePoints=[];for(let i=0;i<=24;i++){const x=-14+i*1.16;wirePoints.push(new THREE.Vector3(x,6.78-Math.sin(i/24*Math.PI)*0.34,-8.56))}const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints(wirePoints),new THREE.LineBasicMaterial({color:'#e2b8bb'}));loungeRoot.add(wire);
+for(let i=0;i<13;i++){const x=-13.3+i*2.21,y=6.78-Math.sin(i/12*Math.PI)*0.34;const bulb=glowingSphere(i%3===0?'#d6ff8c':'#ffc58f',0.8,x,y-0.08,-8.5,0.09);const glow=new THREE.PointLight(i%3===0?'#d6ff8c':'#ffc58f',0.3,1.5);glow.position.set(x,y-0.1,-8.2);loungeRoot.add(glow)}
 
 // Neon wall sign and warm sconces.
 function glowingSphere(color, intensity, x, y, z, radius = 0.12) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 8), mat(color, 0.25, { emissive: color, emissiveIntensity: intensity }));
   m.position.set(x, y, z); loungeRoot.add(m); return m;
 }
-glowingSphere('#d6ff8c', 1.4, 11.5, 5.5, -8.63, 0.2);
-glowingSphere('#ff9bc0', 1.4, -11.5, 5.5, -8.63, 0.2);
-const neon = new THREE.PointLight('#d6ff8c', 2.4, 7); neon.position.set(10.8, 4.8, -7.8); loungeRoot.add(neon);
-const sunset = new THREE.PointLight('#ff9fc5', 2.8, 9); sunset.position.set(-10.5, 4.5, -7.8); loungeRoot.add(sunset);
+glowingSphere('#d6ff8c', 1.4, 13.5, 5.5, -8.63, 0.2);
+glowingSphere('#ff9bc0', 1.4, -13.5, 5.5, -8.63, 0.2);
+const neon = new THREE.PointLight('#d6ff8c', 2.4, 7); neon.position.set(12.8, 4.8, -7.8); loungeRoot.add(neon);
+const sunset = new THREE.PointLight('#ff9fc5', 2.8, 9); sunset.position.set(-12.5, 4.5, -7.8); loungeRoot.add(sunset);
 
 function labelTexture(text, color = '#f7f1ff') {
   const c = document.createElement('canvas'); c.width = 512; c.height = 128;
@@ -254,26 +254,26 @@ function makeChair(x,z,rotation=0) {
 }
 makeChair(-7.1,5.7,Math.PI); makeChair(8.0,5.8,Math.PI);
 obstacles.push({x:0,z:1,r:1.35}); // low central table
-obstacles.push({x:0,z:-8.1,r:3.85}); // solid cinema screen and stand
+obstacles.push({x:0,z:-8.1,r:5.15}); // solid cinema screen and stand
 obstacles.push({x:5,z:-6.4,r:2.15}); // sofa
 obstacles.push({x:-3.4,z:5.2,r:0.78}); // pouf
-for(const [x,z] of [[-11.3,-7.6],[11.3,-7.6],[-11.3,6.2],[11.3,6.0]]) obstacles.push({x,z,r:0.55});
+for(const [x,z] of [[-13.3,-7.6],[13.3,-7.6],[-13.3,6.2],[13.3,6.0]]) obstacles.push({x,z,r:0.55});
 
 // A separate room with its own cocktail counter, dance floor, jukebox and projection screen.
 const barRoot=new THREE.Group(); barRoot.name='bar-rieng'; barRoot.visible=false; scene.add(barRoot);
-const barFloor=box(barRoot,26,0.35,18,mat('#201b31'),0,-0.22,0,false); barFloor.receiveShadow=true;
-box(barRoot,26,7,0.38,mat('#25172e'),0,3.28,-9.05);
-box(barRoot,0.38,7,18,mat('#24172d'),-12.95,3.28,0); box(barRoot,0.38,7,18,mat('#24172d'),12.95,3.28,0);
+const barFloor=box(barRoot,30,0.35,18,mat('#201b31'),0,-0.22,0,false); barFloor.receiveShadow=true;
+box(barRoot,30,7,0.38,mat('#25172e'),0,3.28,-9.05);
+box(barRoot,0.38,7,18,mat('#24172d'),-14.95,3.28,0); box(barRoot,0.38,7,18,mat('#24172d'),14.95,3.28,0);
 for(const [y,color] of [[0.18,'#d536a8'],[6.65,'#5c39b9']]){
-  const strip=box(barRoot,25.6,0.1,0.18,mat(color,0.25,{emissive:color,emissiveIntensity:1.1}),0,y,-8.77,false);
+  const strip=box(barRoot,29.6,0.1,0.18,mat(color,0.25,{emissive:color,emissiveIntensity:1.1}),0,y,-8.77,false);
   animatedDecor.push({type:'neon',mesh:strip,base:0.9,phase:y});
 }
 // Wall-mounted big screen on the right side of the bar.
-const barScreenGroup=new THREE.Group(); barScreenGroup.position.set(6.4,4.35,-8.68); barRoot.add(barScreenGroup);
-box(barScreenGroup,6.8,4.0,0.3,mat('#160f20'),0,0,0,false);
-const barScreenSurface=box(barScreenGroup,6.52,3.72,0.08,mat('#160b1b',0.3,{emissive:'#25102b',emissiveIntensity:0.65}),0,0,0.18,false);
-for(const x of [-3.38,3.38])box(barScreenGroup,0.13,4.15,0.2,mat('#ff48c4',0.27,{emissive:'#f22bb5',emissiveIntensity:1.15}),x,0,0.12,false);
-box(barScreenGroup,6.95,0.13,0.2,mat('#ff48c4',0.27,{emissive:'#f22bb5',emissiveIntensity:1.15}),0,-2.04,0.12,false);
+const barScreenGroup=new THREE.Group(); barScreenGroup.position.set(6.4,3.95,-8.68); barRoot.add(barScreenGroup);
+box(barScreenGroup,9.7,5.5,0.3,mat('#160f20'),0,0,0,false);
+const barScreenSurface=box(barScreenGroup,9.38,5.18,0.08,mat('#160b1b',0.3,{emissive:'#25102b',emissiveIntensity:0.65}),0,0,0.18,false);
+for(const x of [-4.82,4.82])box(barScreenGroup,0.13,5.65,0.2,mat('#ff48c4',0.27,{emissive:'#f22bb5',emissiveIntensity:1.15}),x,0,0.12,false);
+box(barScreenGroup,9.85,0.13,0.2,mat('#ff48c4',0.27,{emissive:'#f22bb5',emissiveIntensity:1.15}),0,-2.72,0.12,false);
 const barScreenStand=new THREE.Group();barScreenStand.position.set(6.4,0,-8.35);barRoot.add(barScreenStand);
 box(barScreenStand,0.3,1.95,0.3,mat('#321b3a'),-1.5,0.98,0);box(barScreenStand,0.3,1.95,0.3,mat('#321b3a'),1.5,0.98,0);
 box(barScreenStand,3.7,0.16,0.9,mat('#21142a'),0,0.1,0);
@@ -300,7 +300,7 @@ for(let i=0;i<4;i++){
   seatGroup.userData.gameId='seat';seatGroup.userData.name='GHẾ QUẦY BAR';seatGroup.userData.room='bar';seatGroup.userData.seatTarget={x,z:z+1.1};
   stool.userData.station=seatGroup;stations.push(seatGroup);roomObstacles.bar.push({x,z,r:0.58});
 }
-roomObstacles.bar.push({x:-5.2,z:-8.25,r:3.0},{x:6.4,z:-8.1,r:3.35},{x:9.7,z:1.6,r:0.95});
+roomObstacles.bar.push({x:-5.2,z:-8.25,r:3.0},{x:6.4,z:-8.1,r:4.9},{x:-9.7,z:1.6,r:0.95});
 // Checker-like dance floor tiles shimmer gently at the center of the room.
 const danceTiles=[];const danceColors=['#ff45bc','#6548ff','#24d5cf','#ffc75a'];
 for(let row=0;row<3;row++)for(let col=0;col<4;col++){
@@ -312,16 +312,23 @@ const discoBall=new THREE.Group();discoBall.position.set(2.2,6.1,0.7);barRoot.ad
 const disco=new THREE.Mesh(new THREE.IcosahedronGeometry(0.78,1),mat('#c8bfda',0.18,{metalness:0.82,emissive:'#5e3d81',emissiveIntensity:0.22}));disco.castShadow=true;discoBall.add(disco);
 const discoLight=new THREE.PointLight('#ff57cb',1.4,13);discoLight.position.set(2.2,5.9,0.7);barRoot.add(discoLight);
 const barSpotLights=[];for(const [x,color] of [[-8,'#ff48c4'],[0,'#7d63ff'],[8,'#39e9d4']]){const light=new THREE.PointLight(color,2.1,9);light.position.set(x,5.9,-0.2);barRoot.add(light);barSpotLights.push(light);}
+const barFloaters=[];const floaterColors=['#ff78d5','#d6ff72','#65e8ff'];
+for(let i=0;i<12;i++){
+  const color=floaterColors[i%floaterColors.length];
+  const star=new THREE.Mesh(new THREE.OctahedronGeometry(i%3===0?0.2:0.14,0),mat(color,0.2,{emissive:color,emissiveIntensity:1.25}));
+  const phase=i*0.83,baseX=0.4+(i%4)*1.45,baseZ=-1.1+Math.floor(i/4)*1.15,baseY=2.0+(i%4)*0.38;
+  star.position.set(baseX,baseY,baseZ);barRoot.add(star);barFloaters.push({mesh:star,phase,baseX,baseY,baseZ});
+}
 // Separate bar jukebox: it opens its own queue and its own screen.
-const barJukebox=new THREE.Group();barJukebox.position.set(10.0,0,1.6);barRoot.add(barJukebox);
+const barJukebox=new THREE.Group();barJukebox.position.set(-10.0,0,1.6);barRoot.add(barJukebox);
 box(barJukebox,1.35,2.1,0.9,mat('#4c245b',0.3,{emissive:'#672b7e',emissiveIntensity:0.32}),0,1.08,0);
 const barJukeScreen=box(barJukebox,0.9,0.8,0.08,mat('#f15ab7',0.23,{emissive:'#ea42b0',emissiveIntensity:1.0}),0,1.35,0.5,false);
 const barDisc=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34,0.08,32),mat('#25172e',0.22,{emissive:'#9d39bb',emissiveIntensity:0.55}));barDisc.rotation.x=Math.PI/2;barDisc.position.set(0,0.78,0.51);barJukebox.add(barDisc);animatedDecor.push({type:'record',mesh:barDisc});
 const barJukeHit=barJukebox.children[0];barJukeHit.userData.station=barJukebox;
 barJukebox.userData.gameId='jukebox';barJukebox.userData.name='MÁY PHÁT NHẠC BAR';barJukebox.userData.room='bar';stations.push(barJukebox);
-const portalLounge=makePortal(loungeRoot,0,7.45,'PORTAL · BAR','#ff63ce','bar');
-const portalBar=makePortal(barRoot,0,7.45,'QUAY LẠI SẢNH','#d6ff72','lounge');
-roomObstacles.bar.push({x:-11.3,z:6.2,r:0.55},{x:11.3,z:6.0,r:0.55});
+const portalLounge=makePortal(loungeRoot,12.2,3.2,'PORTAL · BAR','#ff63ce','bar');
+const portalBar=makePortal(barRoot,12.2,3.2,'QUAY LẠI SẢNH','#d6ff72','lounge');
+roomObstacles.bar.push({x:-13.3,z:6.2,r:0.55},{x:13.3,z:6.0,r:0.55});
 
 // Low-poly avatar with bobbing limbs and a soft pool of light.
 const player = new THREE.Group(); player.position.set(0, 0, 3.45); scene.add(player);
@@ -481,7 +488,7 @@ function animate() {
   if (moving && !modal.classList.contains('open') && musicOverlay.hidden) {
     if(seated){seated=false;player.scale.y=1;}
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
-    const nextX=THREE.MathUtils.clamp(player.position.x + dx * dt * 4.4, -12.0, 12.0);
+  const nextX=THREE.MathUtils.clamp(player.position.x + dx * dt * 4.4, -14.0, 14.0);
     const nextZ=THREE.MathUtils.clamp(player.position.z + dz * dt * 4.4, -8.0, 8.0);
     const blocked=(x,z)=>roomObstacles[activeRoom].some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius) ||
       (activeRoom==='lounge'&&x>2.6&&x<7.4&&z>-7.25&&z<-5.45) ||
@@ -499,6 +506,8 @@ function animate() {
   discoBall.rotation.y=t*0.32;discoBall.rotation.x=Math.sin(t*0.4)*0.12;
   discoLight.intensity=1.0+Math.sin(t*1.9)*0.65;
   barSpotLights.forEach((light,i)=>{light.intensity=1.1+Math.sin(t*2.2+i*2.1)*1.0;light.position.x=Math.sin(t*0.45+i*2.1)*8;});
+  barFloaters.forEach(({mesh,phase,baseX,baseY,baseZ})=>{mesh.position.set(baseX+Math.sin(t*0.55+phase)*0.38,baseY+Math.sin(t*1.25+phase)*0.5,baseZ+Math.cos(t*0.48+phase)*0.3);mesh.rotation.y=t*0.7+phase;mesh.rotation.x=Math.sin(t+phase)*0.3;});
+  for(const portal of [portalLounge,portalBar]){const pulse=1+Math.sin(t*2.2+(portal===portalBar?1:0))*0.07;portal.children[0].scale.setScalar(pulse);portal.children[0].rotation.z=t*0.12;}
   danceTiles.forEach(({mesh,phase})=>{mesh.material.emissiveIntensity=0.28+Math.max(0,Math.sin(t*2.6+phase))*1.0;});
   player.position.y = moving ? Math.abs(Math.sin(t * 10)) * 0.08 : Math.sin(t * 2) * 0.018;
   legs.forEach((leg, i) => { leg.rotation.x = moving ? Math.sin(t * 10 + i * Math.PI) * 0.48 : 0; });
@@ -510,7 +519,7 @@ function animate() {
   updateNearby();
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const activeScreen=activeRoom==='bar'?barScreenGroup:videoScreenGroup;
-  const halfWidth=activeRoom==='bar'?3.26:3.74,halfHeight=activeRoom==='bar'?1.86:2.015;
+  const halfWidth=activeRoom==='bar'?4.69:4.88,halfHeight=activeRoom==='bar'?2.59:2.61;
   const activeProjection=activeRoom==='bar'?barProjectionFrame:projectionFrame;
   const corners=[new THREE.Vector3(-halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,halfHeight,0.23),new THREE.Vector3(-halfWidth,halfHeight,0.23)].map(v=>activeScreen.localToWorld(v).project(camera));
   const rect=host.getBoundingClientRect(), px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));
