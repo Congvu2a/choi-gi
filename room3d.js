@@ -46,32 +46,36 @@ function box(parent, w, h, d, material, x, y, z, cast = true) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   mesh.position.set(x, y, z); mesh.castShadow = cast; mesh.receiveShadow = true; parent.add(mesh); return mesh;
 }
+function roundedPanel(parent,w,h,d,material,x,y,z,r=0.38){
+  const hw=w/2,hh=h/2,shape=new THREE.Shape();r=Math.min(r,hw,hh);
+  shape.moveTo(-hw+r,-hh);shape.lineTo(hw-r,-hh);shape.quadraticCurveTo(hw,-hh,hw,-hh+r);
+  shape.lineTo(hw,hh-r);shape.quadraticCurveTo(hw,hh,hw-r,hh);shape.lineTo(-hw+r,hh);
+  shape.quadraticCurveTo(-hw,hh,-hw,hh-r);shape.lineTo(-hw,-hh+r);shape.quadraticCurveTo(-hw,-hh,-hw+r,-hh);
+  const geometry=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:true,bevelSegments:4,steps:1,bevelSize:0.035,bevelThickness:0.035,curveSegments:10});
+  const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z-d/2);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+}
 // Three enclosing walls make the lobby read as a real room while leaving the front open to the camera.
-box(loungeRoot, 30, 7, 0.38, wallMat, 0, 3.28, -9.05);
-box(loungeRoot, 0.38, 7, 18, mat('#443750'), -14.95, 3.28, 0);
-box(loungeRoot, 0.38, 7, 18, mat('#443750'), 14.95, 3.28, 0);
+box(loungeRoot, 30, 7.5, 0.38, wallMat, 0, 3.53, -9.05);
+box(loungeRoot, 0.38, 7.5, 18, mat('#443750'), -14.95, 3.53, 0);
+box(loungeRoot, 0.38, 7.5, 18, mat('#443750'), 14.95, 3.53, 0);
 box(loungeRoot, 30, 0.18, 0.5, trimMat, 0, 0.05, -8.78, false);
 box(loungeRoot, 0.5, 0.18, 18, trimMat, -14.72, 0.05, 0, false);
 box(loungeRoot, 0.5, 0.18, 18, trimMat, 14.72, 0.05, 0, false);
 
 // Big sunset window, mullions, and a low sill on the back wall.
 const windowGlow = mat('#f4a6c2', 0.24, { emissive: '#dc7fa8', emissiveIntensity: 0.62 });
-box(loungeRoot, 5.1, 3.55, 0.16, mat('#281f39'), -8.0, 4.55, -8.79, false);
-box(loungeRoot, 4.68, 3.1, 0.08, windowGlow, -8.0, 4.58, -8.68, false);
-box(loungeRoot, 0.11, 3.08, 0.12, mat('#563a59'), -8.0, 4.58, -8.59, false);
-box(loungeRoot, 4.7, 0.12, 0.12, mat('#563a59'), -8.0, 4.58, -8.58, false);
-box(loungeRoot, 5.15, 0.2, 0.55, mat('#32243d'), -8.0, 2.79, -8.45);
+box(loungeRoot, 5.1, 3.55, 0.16, mat('#281f39'), -12.0, 4.55, -8.79, false);
+box(loungeRoot, 4.68, 3.1, 0.08, windowGlow, -12.0, 4.58, -8.68, false);
+box(loungeRoot, 0.11, 3.08, 0.12, mat('#563a59'), -12.0, 4.58, -8.59, false);
+box(loungeRoot, 4.7, 0.12, 0.12, mat('#563a59'), -12.0, 4.58, -8.58, false);
+box(loungeRoot, 5.15, 0.2, 0.55, mat('#32243d'), -12.0, 2.79, -8.45);
 
 // Giant projection screen. The HTML YouTube iframe is projected over this 3D panel below.
-const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 3.95, -8.70); loungeRoot.add(videoScreenGroup);
-box(videoScreenGroup, 10.1, 5.55, 0.3, mat('#211a2c'), 0, 0, 0, false);
-const videoScreenSurface = box(videoScreenGroup, 9.76, 5.22, 0.08, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.18, false);
-for (const x of [-5.0, 5.0]) box(videoScreenGroup, 0.14, 5.7, 0.22, mat('#d6ff72',0.3,{emissive:'#9fcb42',emissiveIntensity:0.6}),x,0,0.12,false);
-box(videoScreenGroup, 10.3, 0.15, 0.24, mat('#d6ff72',0.3,{emissive:'#9fcb42',emissiveIntensity:0.6}),0,-2.82,0.12,false);
-const screenStand = new THREE.Group(); screenStand.position.set(0, 0, -8.35); loungeRoot.add(screenStand);
-box(screenStand, 0.36, 1.9, 0.36, mat('#342a43'), -2.0, 0.95, 0);
-box(screenStand, 0.36, 1.9, 0.36, mat('#342a43'), 2.0, 0.95, 0);
-box(screenStand, 4.8, 0.15, 1.0, mat('#241c30'), 0, 0.12, 0);
+const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 3.53, -8.70); loungeRoot.add(videoScreenGroup);
+roundedPanel(videoScreenGroup,13.7,7.15,0.42,mat('#241d34',0.24,{metalness:0.45,emissive:'#412956',emissiveIntensity:0.3}),0,0,0,0.46);
+roundedPanel(videoScreenGroup,13.15,6.75,0.08,mat('#c67bb8',0.28,{metalness:0.3,emissive:'#8b3a7d',emissiveIntensity:0.7}),0,0,0.24,0.38);
+const videoScreenSurface = box(videoScreenGroup, 12.45, 6.99, 0.035, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.31, false);
+for(const x of [-6.58,6.58]){const light=box(videoScreenGroup,0.055,6.25,0.06,mat('#d6ff72',0.2,{emissive:'#b8ee54',emissiveIntensity:1.0}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.8,phase:x});}
 const projectionFrame = document.createElement('div'); projectionFrame.className = 'room-projection'; projectionFrame.setAttribute('aria-label','Video đang chiếu trên màn hình lớn');
 const projectionHint = document.createElement('div'); projectionHint.className = 'projection-hint'; projectionHint.innerHTML = '<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>'; projectionFrame.append(projectionHint); host.append(projectionFrame);
 const musicPlayer = document.querySelector('#youtubePlayer'); projectionFrame.append(musicPlayer);
@@ -173,6 +177,9 @@ const stationDefs = [
   { id: 'rps', name: 'OẲN TÙ TÌ', x: -0.2, z: -3.2, color: '#ff9f83', icon: '✊', hint: 'ĐỐI KHÁNG' },
   { id: 'reaction', name: 'PHẢN XẠ', x: 9.0, z: -1.0, color: '#d6ff72', icon: '⚡', hint: 'NHANH TAY' },
   { id: 'ttt', name: 'CỜ CA-RÔ', x: 4.4, z: 3.8, color: '#8faeff', icon: '×', hint: 'ĐẤU TRÍ' },
+  { id: 'math', name: 'TÍNH NHẨM', x: -11.2, z: 4.15, color: '#ffc96e', icon: '+', hint: 'ĐỘNG NÃO' },
+  { id: 'whack', name: 'ĐẬP CHUỘT', x: -7.1, z: 5.65, color: '#ff79ae', icon: '●', hint: 'NHANH TAY' },
+  { id: 'coin', name: 'SẤP HAY NGỬA', x: 10.8, z: 4.15, color: '#67d8d0', icon: '✦', hint: 'MAY MẮN' },
 ];
 function makeArcade(def) {
   const group = new THREE.Group(); group.position.set(def.x, 0, def.z); loungeRoot.add(group);
@@ -254,7 +261,7 @@ function makeChair(x,z,rotation=0) {
 }
 makeChair(-7.1,5.7,Math.PI); makeChair(8.0,5.8,Math.PI);
 obstacles.push({x:0,z:1,r:1.35}); // low central table
-obstacles.push({x:0,z:-8.1,r:5.15}); // solid cinema screen and stand
+obstacles.push({x:0,z:-8.1,r:6.5}); // solid cinema screen
 obstacles.push({x:5,z:-6.4,r:2.15}); // sofa
 obstacles.push({x:-3.4,z:5.2,r:0.78}); // pouf
 for(const [x,z] of [[-13.3,-7.6],[13.3,-7.6],[-13.3,6.2],[13.3,6.0]]) obstacles.push({x,z,r:0.55});
@@ -262,21 +269,18 @@ for(const [x,z] of [[-13.3,-7.6],[13.3,-7.6],[-13.3,6.2],[13.3,6.0]]) obstacles.
 // A separate room with its own cocktail counter, dance floor, jukebox and projection screen.
 const barRoot=new THREE.Group(); barRoot.name='bar-rieng'; barRoot.visible=false; scene.add(barRoot);
 const barFloor=box(barRoot,30,0.35,18,mat('#201b31'),0,-0.22,0,false); barFloor.receiveShadow=true;
-box(barRoot,30,7,0.38,mat('#25172e'),0,3.28,-9.05);
-box(barRoot,0.38,7,18,mat('#24172d'),-14.95,3.28,0); box(barRoot,0.38,7,18,mat('#24172d'),14.95,3.28,0);
+box(barRoot,30,7.5,0.38,mat('#25172e'),0,3.53,-9.05);
+box(barRoot,0.38,7.5,18,mat('#24172d'),-14.95,3.53,0); box(barRoot,0.38,7.5,18,mat('#24172d'),14.95,3.53,0);
 for(const [y,color] of [[0.18,'#d536a8'],[6.65,'#5c39b9']]){
   const strip=box(barRoot,29.6,0.1,0.18,mat(color,0.25,{emissive:color,emissiveIntensity:1.1}),0,y,-8.77,false);
   animatedDecor.push({type:'neon',mesh:strip,base:0.9,phase:y});
 }
 // Wall-mounted big screen on the right side of the bar.
-const barScreenGroup=new THREE.Group(); barScreenGroup.position.set(6.4,3.95,-8.68); barRoot.add(barScreenGroup);
-box(barScreenGroup,9.7,5.5,0.3,mat('#160f20'),0,0,0,false);
-const barScreenSurface=box(barScreenGroup,9.38,5.18,0.08,mat('#160b1b',0.3,{emissive:'#25102b',emissiveIntensity:0.65}),0,0,0.18,false);
-for(const x of [-4.82,4.82])box(barScreenGroup,0.13,5.65,0.2,mat('#ff48c4',0.27,{emissive:'#f22bb5',emissiveIntensity:1.15}),x,0,0.12,false);
-box(barScreenGroup,9.85,0.13,0.2,mat('#ff48c4',0.27,{emissive:'#f22bb5',emissiveIntensity:1.15}),0,-2.72,0.12,false);
-const barScreenStand=new THREE.Group();barScreenStand.position.set(6.4,0,-8.35);barRoot.add(barScreenStand);
-box(barScreenStand,0.3,1.95,0.3,mat('#321b3a'),-1.5,0.98,0);box(barScreenStand,0.3,1.95,0.3,mat('#321b3a'),1.5,0.98,0);
-box(barScreenStand,3.7,0.16,0.9,mat('#21142a'),0,0.1,0);
+const barScreenGroup=new THREE.Group(); barScreenGroup.position.set(6.4,3.53,-8.68); barRoot.add(barScreenGroup);
+roundedPanel(barScreenGroup,13.7,7.15,0.42,mat('#29172f',0.22,{metalness:0.42,emissive:'#8c286c',emissiveIntensity:0.42}),0,0,0,0.46);
+roundedPanel(barScreenGroup,13.15,6.75,0.08,mat('#ff62c8',0.25,{metalness:0.3,emissive:'#e43aa8',emissiveIntensity:1.0}),0,0,0.24,0.38);
+const barScreenSurface=box(barScreenGroup,12.45,6.99,0.035,mat('#100912',0.28,{emissive:'#25102b',emissiveIntensity:0.65}),0,0,0.31,false);
+for(const x of [-6.58,6.58]){const light=box(barScreenGroup,0.06,6.25,0.06,mat('#ff62c8',0.18,{emissive:'#ff45c1',emissiveIntensity:1.2}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.95,phase:x+1});}
 const barSign=addLabel(barRoot,'BAR · OPEN LATE','#ff91dc');barSign.position.set(-4.8,5.55,-8.55);barSign.scale.set(4.6,0.95,1);
 // Amber bottle shelves behind the counter.
 for(const y of [2.7,3.85]){
@@ -300,7 +304,7 @@ for(let i=0;i<4;i++){
   seatGroup.userData.gameId='seat';seatGroup.userData.name='GHẾ QUẦY BAR';seatGroup.userData.room='bar';seatGroup.userData.seatTarget={x,z:z+1.1};
   stool.userData.station=seatGroup;stations.push(seatGroup);roomObstacles.bar.push({x,z,r:0.58});
 }
-roomObstacles.bar.push({x:-5.2,z:-8.25,r:3.0},{x:6.4,z:-8.1,r:4.9},{x:-9.7,z:1.6,r:0.95});
+roomObstacles.bar.push({x:-5.2,z:-8.25,r:3.0},{x:6.4,z:-8.1,r:6.5},{x:9.7,z:1.6,r:0.95});
 // Checker-like dance floor tiles shimmer gently at the center of the room.
 const danceTiles=[];const danceColors=['#ff45bc','#6548ff','#24d5cf','#ffc75a'];
 for(let row=0;row<3;row++)for(let col=0;col<4;col++){
@@ -320,7 +324,7 @@ for(let i=0;i<12;i++){
   star.position.set(baseX,baseY,baseZ);barRoot.add(star);barFloaters.push({mesh:star,phase,baseX,baseY,baseZ});
 }
 // Separate bar jukebox: it opens its own queue and its own screen.
-const barJukebox=new THREE.Group();barJukebox.position.set(-10.0,0,1.6);barRoot.add(barJukebox);
+const barJukebox=new THREE.Group();barJukebox.position.set(10.0,0,1.6);barRoot.add(barJukebox);
 box(barJukebox,1.35,2.1,0.9,mat('#4c245b',0.3,{emissive:'#672b7e',emissiveIntensity:0.32}),0,1.08,0);
 const barJukeScreen=box(barJukebox,0.9,0.8,0.08,mat('#f15ab7',0.23,{emissive:'#ea42b0',emissiveIntensity:1.0}),0,1.35,0.5,false);
 const barDisc=new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.34,0.08,32),mat('#25172e',0.22,{emissive:'#9d39bb',emissiveIntensity:0.55}));barDisc.rotation.x=Math.PI/2;barDisc.position.set(0,0.78,0.51);barJukebox.add(barDisc);animatedDecor.push({type:'record',mesh:barDisc});
@@ -381,7 +385,7 @@ function switchRoom(room){
   activeRoom=room==='bar'?'bar':'lounge';
   loungeRoot.visible=activeRoom==='lounge';barRoot.visible=activeRoom==='bar';
   document.querySelector('.room-shell')?.classList.toggle('bar-mode',activeRoom==='bar');
-  player.position.set(activeRoom==='bar'?6.4:-5.2,0,activeRoom==='bar'?4.8:4.6);
+  player.position.set(activeRoom==='bar'?8.15:-5.2,0,activeRoom==='bar'?2.0:4.6);
   seated=false;player.scale.y=1;keys.clear();
   document.querySelector('#roomEyebrow').textContent=activeRoom==='bar'?'QUÁN BAR':'SẢNH GAME';
   document.querySelector('#roomHeading').innerHTML=activeRoom==='bar'?'Một chút chill ở <span>BAR ✦</span>':'Góc vui vẻ <span>✳</span>';
@@ -392,7 +396,10 @@ function switchRoom(room){
 }
 function openStation(station) {
   if(!station||station.userData.room!==activeRoom)return;
-  if(station.userData.gameId==='jukebox')window.openMusicPanel(activeRoom);
+  if(station.userData.gameId==='jukebox'){
+    if(typeof window.openMusicPanel==='function')window.openMusicPanel(activeRoom);
+    else window.showToast('Máy phát nhạc chưa tải xong. Hãy tải lại trang một lần nhé.');
+  }
   else if(station.userData.gameId==='door')switchRoom(station.userData.targetRoom);
   else if(station.userData.gameId==='seat'){
     seated=!seated;
@@ -407,7 +414,7 @@ function updateNearby() {
     const d = Math.hypot(player.position.x - station.position.x, player.position.z - station.position.z);
     if (d < distance) { closest = station; distance = d; }
   }
-  nearest = distance < 2.5 ? closest : null;
+  nearest = distance < 4 ? closest : null;
   if (nearest) {
     const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat',door=nearest.userData.gameId==='door';
     message.textContent = door ? (activeRoom==='bar'?'Bạn đang ở cửa ra sảnh. Nhấn E để quay lại.':'Bạn đang ở cửa BAR. Nhấn E để vào quán!') : seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':'Bạn đang ở gần ghế. Nhấn E để ngồi!') : music ? 'Bạn đang ở máy phát nhạc. Nhấn E để chọn nhạc!' : `Bạn đang ở khu ${nearest.userData.name}. Nhấn E để chơi!`;
@@ -432,6 +439,8 @@ function pointerPosition(event) {
   pointer.y = -((event.clientY - r.top) / r.height) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
   const hits = raycaster.intersectObjects(stations.filter(item=>item.userData.room===activeRoom), true);
+  const screenHit=raycaster.intersectObject(activeRoom==='bar'?barScreenSurface:videoScreenSurface,false)[0];
+  if(screenHit&&(!hits[0]||screenHit.distance<hits[0].distance))return null;
   return hits.map(h => h.object.userData.station || h.object.parent).find(o => o?.userData?.gameId) || null;
 }
 renderer.domElement.addEventListener('pointermove', e => { renderer.domElement.style.cursor = pointerPosition(e) ? 'pointer' : 'default'; });
@@ -519,7 +528,7 @@ function animate() {
   updateNearby();
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const activeScreen=activeRoom==='bar'?barScreenGroup:videoScreenGroup;
-  const halfWidth=activeRoom==='bar'?4.69:4.88,halfHeight=activeRoom==='bar'?2.59:2.61;
+  const halfWidth=6.225,halfHeight=3.495;
   const activeProjection=activeRoom==='bar'?barProjectionFrame:projectionFrame;
   const corners=[new THREE.Vector3(-halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,halfHeight,0.23),new THREE.Vector3(-halfWidth,halfHeight,0.23)].map(v=>activeScreen.localToWorld(v).project(camera));
   const rect=host.getBoundingClientRect(), px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));
