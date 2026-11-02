@@ -9,16 +9,37 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="room.css" />
 </head>
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <header class="topbar">
     <a class="brand" href="#home" aria-label="Chơi Gì trang chủ"><span class="brand-mark">✳</span><span>chơi gì<span class="brand-dot">.</span></span></a>
-    <nav class="nav-links"><a class="active" href="#home">Khám phá</a><a href="#games">Trò chơi</a><a href="#about">Cách chơi</a></nav>
+    <nav class="nav-links"><a class="active" href="#room">Phòng chơi</a><a href="#room">Khám phá</a><a href="#about">Cách chơi</a></nav>
     <button class="profile-button" id="profileBtn"><span class="online-dot"></span><span>Khách chơi</span><span class="avatar">✦</span></button>
   </header>
 
   <main id="home">
+    <section class="room-shell" id="room">
+      <div class="room-heading"><div><div class="eyebrow"><span class="online-dot"></span> SẢNH GAME</div><h1>Góc vui vẻ <span>✳</span></h1><p>Đi một vòng, chọn khu bạn thích rồi chơi nhé.</p></div><div class="room-status"><span class="status-pulse"></span> Phòng của bạn <b>·</b> <span id="guestCount">1 người ở đây</span><button id="shareRoomBtn" aria-label="Chia sẻ phòng">↗</button></div></div>
+      <div class="room-frame">
+        <div class="room-scene" id="roomScene" tabindex="0" aria-label="Phòng chơi. Dùng WASD hoặc phím mũi tên để di chuyển.">
+          <div class="room-back-wall"><div class="wall-window"><i></i><i></i><i></i></div><div class="wall-shelf"><span>✦</span><span>♧</span><span>♫</span></div><div class="neon-sign">GOOD<br><b>VIBES</b></div><div class="wall-light light-left"></div><div class="wall-light light-right"></div></div>
+          <div class="room-floor"><div class="floor-rug"></div><div class="plant plant-left">🌿</div><div class="plant plant-right">🪴</div><div class="floor-lamp">✦</div>
+            <button class="room-station station-guess" data-station="guess"><span class="station-art art-guess">🔮</span><span class="station-name">Đoán số</span><span class="station-hint">CHƠI NHANH</span></button>
+            <button class="room-station station-memory" data-station="memory"><span class="station-art art-memory">🧠</span><span class="station-name">Trí nhớ</span><span class="station-hint">ĐỘNG NÃO</span></button>
+            <button class="room-station station-rps" data-station="rps"><span class="station-art art-rps">✊</span><span class="station-name">Oẳn tù tì</span><span class="station-hint">ĐỐI KHÁNG</span></button>
+            <button class="room-station station-reaction" data-station="reaction"><span class="station-art art-reaction">⚡</span><span class="station-name">Phản xạ</span><span class="station-hint">NHANH TAY</span></button>
+            <button class="room-station station-ttt" data-station="ttt"><span class="station-art art-ttt">⭕</span><span class="station-name">Cờ ca-rô</span><span class="station-hint">ĐẤU TRÍ</span></button>
+            <div class="room-player" id="roomPlayer" role="img" aria-label="Nhân vật của bạn"><span class="player-shadow"></span><span class="player-body"><i class="player-hair"></i><i class="player-face">☺</i><i class="player-shirt"></i></span><span class="player-label">BẠN</span></div>
+          </div>
+          <div class="room-sign"><span>⌂</span> CHILL ZONE</div>
+          <div class="room-activity"><span class="activity-dot"></span><span id="roomMessage">Chào mừng! Đi tới một khu game để chơi.</span></div>
+        </div>
+        <div class="room-controls"><div class="move-controls" aria-label="Điều khiển nhân vật"><button data-move="up" aria-label="Đi lên">↑</button><div><button data-move="left" aria-label="Đi sang trái">←</button><button data-move="down" aria-label="Đi xuống">↓</button><button data-move="right" aria-label="Đi sang phải">→</button></div></div><div class="control-help"><span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span class="help-divider">hoặc phím mũi tên để đi</span><span class="keycap key-e">E</span><span class="help-divider">chơi game gần nhất</span></div><button class="interact-button" id="interactBtn"><span>↗</span> Chơi ở đây</button></div>
+      </div>
+      <div class="room-footnote"><span>✦</span> Chọn một máy game hoặc di chuyển nhân vật đến gần rồi nhấn <b>E</b>.</div>
+    </section>
     <section class="hero">
       <div class="hero-copy">
         <div class="eyebrow"><span class="sparkle">✦</span> GÓC GIẢI TRÍ CỦA BẠN</div>
@@ -49,5 +70,6 @@
   <div class="modal" id="gameModal" aria-hidden="true"><div class="modal-backdrop" data-close></div><section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="modal-close" data-close aria-label="Đóng">×</button><div class="modal-kicker">CHƠI GÌ? <span>✳</span></div><h2 id="modalTitle">Trò chơi</h2><div class="game-area" id="gameArea"></div></section></div>
   <div class="toast" id="toast" role="status"></div>
   <script src="script.js"></script>
+  <script src="room.js"></script>
 </body>
 </html>
