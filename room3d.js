@@ -112,7 +112,7 @@ function plant(x, z, scale = 1) {
 plant(-13.3, -7.6, 1.12); plant(13.3, -7.6, 1.15); plant(-13.3, 6.2, 0.9); plant(13.3, 6.0, 0.92);
 
 // A soft sofa, throw pillows, and a little pouf make the lounge feel lived in.
-const sofa = new THREE.Group(); sofa.position.set(5.0, 0, -6.4); loungeRoot.add(sofa);
+const sofa = new THREE.Group(); sofa.position.set(3.25, 0, -6.4); loungeRoot.add(sofa);
 box(sofa, 3.7, 0.48, 1.3, mat('#745184'), 0, 0.46, 0);
 box(sofa, 3.7, 1.2, 0.36, mat('#674675'), 0, 1.13, -0.48);
 box(sofa, 0.48, 0.88, 1.32, mat('#79538a'), -1.62, 0.75, 0.02);
@@ -126,9 +126,9 @@ for (let i = 0; i < 3; i++) {
 for (const [x,color,rot] of [[-1.08,'#d6ff8c',-0.16],[1.07,'#ffb3c9',0.16]]) {
   const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.48,0.2),mat(color,0.72)); pillow.position.set(x,1.25,-0.08); pillow.rotation.z=rot; pillow.castShadow=true; sofa.add(pillow);
 }
-sofa.userData.gameId='seat';sofa.userData.name='SOFA';sofa.userData.seatTarget={x:5,z:-3.65};
-const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.68,0.58,12),mat('#cf8c9c')); pouf.position.set(0,0.3,7.5); pouf.castShadow=true; pouf.receiveShadow=true; loungeRoot.add(pouf);
-const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.1,12),mat('#efb5a1')); poufTop.position.set(0,0.62,7.5); poufTop.castShadow=true; loungeRoot.add(poufTop);
+sofa.userData.gameId='seat';sofa.userData.name='SOFA';sofa.userData.seatTarget={x:3.25,z:-3.65};
+const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.68,0.58,12),mat('#cf8c9c')); pouf.position.set(3.1,0.3,5.7); pouf.castShadow=true; pouf.receiveShadow=true; loungeRoot.add(pouf);
+const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.1,12),mat('#efb5a1')); poufTop.position.set(3.1,0.62,5.7); poufTop.castShadow=true; loungeRoot.add(poufTop);
 
 // Vinyl wall art and warm fairy lights bring color into the back wall.
 const wirePoints=[];for(let i=0;i<=24;i++){const x=-14+i*1.16;wirePoints.push(new THREE.Vector3(x,6.78-Math.sin(i/24*Math.PI)*0.34,-8.56))}const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints(wirePoints),new THREE.LineBasicMaterial({color:'#e2b8bb'}));loungeRoot.add(wire);
@@ -172,7 +172,7 @@ function makeLobbyPortal(x,z,label,color,targetRoom,targetPosition){
   return portal;
 }
 // The game wings are reached through their doorways. Only the bar gets a lobby portal.
-makeLobbyPortal(4.2,6.8,'CỔNG · QUÁN BAR','#ff91cf','bar',{x:40,z:3.45});
+makeLobbyPortal(0,6.85,'CỔNG · QUÁN BAR','#ff91cf','bar',{x:40,z:3.45});
 // The bar is a separate fourth space, reached only from the lobby gate.
 const barRoot=new THREE.Group();barRoot.name='quan-bar';barRoot.position.set(40,0,0);scene.add(barRoot);
 const barFloor=mat('#302b3c');
@@ -321,11 +321,10 @@ function makeChair(x,z,rotation=0) {
   chair.userData.gameId='seat'; chair.userData.name='GHẾ NGỒI'; chair.userData.room='lounge'; chair.userData.seatTarget={x:x,z:z+1.15};
   stations.push(chair); obstacles.push({x,z,r:0.72});
 }
-makeChair(-3.15,1.4,Math.PI); makeChair(3.15,1.4,Math.PI); makeChair(0,5.2,Math.PI);
+makeChair(-3.15,1.4,Math.PI); makeChair(3.15,1.4,Math.PI); makeChair(-3.15,5.2,Math.PI);
 obstacles.push({x:0,z:1,r:1.35}); // low central table
-obstacles.push({x:0,z:-8.1,r:4.8}); // cinema screen and wall margin
-obstacles.push({x:5,z:-6.4,r:2.15}); // sofa
-obstacles.push({x:0,z:7.5,r:0.78}); // pouf
+obstacles.push({x:3.25,z:-6.4,r:2.05}); // sofa stays inside the lobby
+obstacles.push({x:3.1,z:5.7,r:0.78}); // pouf beside the bar gate
 for(const [x,z] of [[-13.3,-7.6],[13.3,-7.6],[-13.3,6.2],[13.3,6.0]]) obstacles.push({x,z,r:0.55});
 
 // Low-poly avatar with bobbing limbs and a soft pool of light.
@@ -503,9 +502,11 @@ function animate() {
   playerVelocity.y=THREE.MathUtils.lerp(playerVelocity.y,dz*maxSpeed,blend);
   if(Math.abs(playerVelocity.x)<0.015)playerVelocity.x=0;
   if(Math.abs(playerVelocity.y)<0.015)playerVelocity.y=0;
-  const blocked=(x,z)=>obstacles.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius);
-  const crossesDivider=(from,to,z)=>Math.abs(to-from)>0.001&&[-5.8,5.8].some(wall=>((from<wall&&to>=wall)||(from>wall&&to<=wall))&&Math.abs(z)>1.42);
-  const xMin=activeRoom==='bar'?29.5:-14,xMax=activeRoom==='bar'?50.5:14;
+  const doorClearance=1.08;
+  const blocked=(x,z)=>obstacles.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius)||
+    (activeRoom!=='bar'&&[-5.8,5.8].some(wall=>Math.abs(x-wall)<radius+0.21&&Math.abs(z)>doorClearance));
+  const crossesDivider=(from,to,z)=>Math.abs(to-from)>0.001&&[-5.8,5.8].some(wall=>((from<wall&&to>=wall)||(from>wall&&to<=wall))&&Math.abs(z)>doorClearance);
+  const xMin=activeRoom==='bar'?30.1:-14,xMax=activeRoom==='bar'?49.9:14;
   const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,xMin,xMax);
   const nextZ=THREE.MathUtils.clamp(player.position.z+playerVelocity.y*dt,-8,8);
   if(!blocked(nextX,player.position.z)&&!crossesDivider(player.position.x,nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
