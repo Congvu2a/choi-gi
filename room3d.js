@@ -71,11 +71,11 @@ box(loungeRoot, 4.7, 0.12, 0.12, mat('#563a59'), -12.0, 4.58, -8.58, false);
 box(loungeRoot, 5.15, 0.2, 0.55, mat('#32243d'), -12.0, 2.79, -8.45);
 
 // Giant projection screen. The HTML YouTube iframe is projected over this 3D panel below.
-const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 4.7, -8.70); loungeRoot.add(videoScreenGroup);
-roundedPanel(videoScreenGroup,10.0,5.8,0.42,mat('#241d34',0.24,{metalness:0.45,emissive:'#412956',emissiveIntensity:0.3}),0,0,0,0.46);
-roundedPanel(videoScreenGroup,9.55,5.48,0.08,mat('#c67bb8',0.28,{metalness:0.3,emissive:'#8b3a7d',emissiveIntensity:0.7}),0,0,0.24,0.38);
-const videoScreenSurface = box(videoScreenGroup, 9.1, 5.12, 0.035, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.31, false);
-for(const x of [-4.78,4.78]){const light=box(videoScreenGroup,0.055,4.8,0.06,mat('#d6ff72',0.2,{emissive:'#b8ee54',emissiveIntensity:1.0}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.8,phase:x});}
+const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 5.1, -8.70); loungeRoot.add(videoScreenGroup);
+roundedPanel(videoScreenGroup,8.0,4.75,0.42,mat('#241d34',0.24,{metalness:0.45,emissive:'#412956',emissiveIntensity:0.3}),0,0,0,0.46);
+roundedPanel(videoScreenGroup,7.55,4.43,0.08,mat('#c67bb8',0.28,{metalness:0.3,emissive:'#8b3a7d',emissiveIntensity:0.7}),0,0,0.24,0.38);
+const videoScreenSurface = box(videoScreenGroup, 7.2, 4.05, 0.035, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.31, false);
+for(const x of [-3.82,3.82]){const light=box(videoScreenGroup,0.055,3.75,0.06,mat('#d6ff72',0.2,{emissive:'#b8ee54',emissiveIntensity:1.0}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.8,phase:x});}
 const projectionFrame = document.createElement('div'); projectionFrame.className = 'room-projection'; projectionFrame.setAttribute('aria-label','Video đang chiếu trên màn hình lớn');
 const projectionHint = document.createElement('div'); projectionHint.className = 'projection-hint'; projectionHint.innerHTML = '<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>'; projectionFrame.append(projectionHint); host.append(projectionFrame);
 const musicPlayer = document.querySelector('#youtubePlayer'); projectionFrame.append(musicPlayer);
@@ -283,11 +283,11 @@ for(const [y,color] of [[0.18,'#d536a8'],[6.65,'#5c39b9']]){
   animatedDecor.push({type:'neon',mesh:strip,base:0.9,phase:y});
 }
 // Wall-mounted big screen on the right side of the bar.
-const barScreenGroup=new THREE.Group(); barScreenGroup.position.set(6.4,4.7,-8.68); barRoot.add(barScreenGroup);
-roundedPanel(barScreenGroup,10.0,5.8,0.42,mat('#29172f',0.22,{metalness:0.42,emissive:'#8c286c',emissiveIntensity:0.42}),0,0,0,0.46);
-roundedPanel(barScreenGroup,9.55,5.48,0.08,mat('#ff62c8',0.25,{metalness:0.3,emissive:'#e43aa8',emissiveIntensity:1.0}),0,0,0.24,0.38);
-const barScreenSurface=box(barScreenGroup,9.1,5.12,0.035,mat('#100912',0.28,{emissive:'#25102b',emissiveIntensity:0.65}),0,0,0.31,false);
-for(const x of [-4.78,4.78]){const light=box(barScreenGroup,0.06,4.8,0.06,mat('#ff62c8',0.18,{emissive:'#ff45c1',emissiveIntensity:1.2}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.95,phase:x+1});}
+const barScreenGroup=new THREE.Group(); barScreenGroup.position.set(6.4,5.1,-8.68); barRoot.add(barScreenGroup);
+roundedPanel(barScreenGroup,8.0,4.75,0.42,mat('#29172f',0.22,{metalness:0.42,emissive:'#8c286c',emissiveIntensity:0.42}),0,0,0,0.46);
+roundedPanel(barScreenGroup,7.55,4.43,0.08,mat('#ff62c8',0.25,{metalness:0.3,emissive:'#e43aa8',emissiveIntensity:1.0}),0,0,0.24,0.38);
+const barScreenSurface=box(barScreenGroup,7.2,4.05,0.035,mat('#100912',0.28,{emissive:'#25102b',emissiveIntensity:0.65}),0,0,0.31,false);
+for(const x of [-3.82,3.82]){const light=box(barScreenGroup,0.06,3.75,0.06,mat('#ff62c8',0.18,{emissive:'#ff45c1',emissiveIntensity:1.2}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.95,phase:x+1});}
 const barSign=addLabel(barRoot,'BAR · OPEN LATE','#ff91dc');barSign.position.set(-4.8,5.55,-8.55);barSign.scale.set(4.6,0.95,1);
 // Amber bottle shelves behind the counter.
 for(const y of [2.7,3.85]){
@@ -535,7 +535,7 @@ function animate() {
   updateNearby();
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const activeScreen=activeRoom==='bar'?barScreenGroup:videoScreenGroup;
-  const halfWidth=4.55,halfHeight=2.56;
+  const halfWidth=3.6,halfHeight=2.025;
   const activeProjection=activeRoom==='bar'?barProjectionFrame:projectionFrame;
   const corners=[new THREE.Vector3(-halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,halfHeight,0.23),new THREE.Vector3(-halfWidth,halfHeight,0.23)].map(v=>activeScreen.localToWorld(v).project(camera));
   const rect=host.getBoundingClientRect(), px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));
