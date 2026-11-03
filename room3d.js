@@ -72,11 +72,11 @@ box(loungeRoot, 4.7, 0.12, 0.12, mat('#563a59'), -12.0, 4.58, -8.58, false);
 box(loungeRoot, 5.15, 0.2, 0.55, mat('#32243d'), -12.0, 2.79, -8.45);
 
 // Giant projection screen. The HTML YouTube iframe is projected over this 3D panel below.
-const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 5.1, -8.70); loungeRoot.add(videoScreenGroup);
-roundedPanel(videoScreenGroup,8.0,4.75,0.42,mat('#241d34',0.24,{metalness:0.45,emissive:'#412956',emissiveIntensity:0.3}),0,0,0,0.46);
-roundedPanel(videoScreenGroup,7.55,4.43,0.08,mat('#c67bb8',0.28,{metalness:0.3,emissive:'#8b3a7d',emissiveIntensity:0.7}),0,0,0.24,0.38);
-const videoScreenSurface = box(videoScreenGroup, 7.2, 4.05, 0.035, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.31, false);
-for(const x of [-3.82,3.82]){const light=box(videoScreenGroup,0.055,3.75,0.06,mat('#d6ff72',0.2,{emissive:'#b8ee54',emissiveIntensity:1.0}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.8,phase:x});}
+const videoScreenGroup = new THREE.Group(); videoScreenGroup.position.set(0, 4.45, -8.70); loungeRoot.add(videoScreenGroup);
+roundedPanel(videoScreenGroup,11.7,6.15,0.42,mat('#241d34',0.24,{metalness:0.45,emissive:'#412956',emissiveIntensity:0.3}),0,0,0,0.46);
+roundedPanel(videoScreenGroup,11.2,5.83,0.08,mat('#c67bb8',0.28,{metalness:0.3,emissive:'#8b3a7d',emissiveIntensity:0.7}),0,0,0.24,0.38);
+const videoScreenSurface = box(videoScreenGroup, 10.75, 5.48, 0.035, mat('#090a12', 0.3, { emissive:'#12121e', emissiveIntensity:0.6 }), 0, 0, 0.31, false);
+for(const x of [-5.62,5.62]){const light=box(videoScreenGroup,0.055,5.2,0.06,mat('#d6ff72',0.2,{emissive:'#b8ee54',emissiveIntensity:1.0}),x,0,0.31,false);animatedDecor.push({type:'neon',mesh:light,base:0.8,phase:x});}
 const projectionFrame = document.createElement('div'); projectionFrame.className = 'room-projection'; projectionFrame.setAttribute('aria-label','Video đang chiếu trên màn hình lớn');
 const projectionHint = document.createElement('div'); projectionHint.className = 'projection-hint'; projectionHint.innerHTML = '<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>'; projectionFrame.append(projectionHint); host.append(projectionFrame);
 const musicPlayer = document.querySelector('#youtubePlayer'); projectionFrame.append(musicPlayer);
@@ -182,9 +182,10 @@ box(barRoot,0.38,7.5,18,mat('#291f36'),-10.45,3.53,0);box(barRoot,0.38,7.5,18,ma
 const barNeon=mat('#ff58bd',0.22,{emissive:'#ff28ac',emissiveIntensity:1.2});
 box(barRoot,18,0.14,0.18,barNeon,0,6.75,-8.78,false);
 const barSign=addLabel(barRoot,'NIGHT OWL · BAR','#ff9cda');barSign.position.set(0,5.7,-8.55);barSign.scale.set(5.5,1.0,1);
-const barScreenGroup=new THREE.Group();barScreenGroup.position.set(0,4.8,-8.5);barRoot.add(barScreenGroup);
-roundedPanel(barScreenGroup,7.0,3.9,0.3,mat('#17131f',0.25,{metalness:0.4,emissive:'#64204f',emissiveIntensity:0.55}),0,0,0,0.35);
-const barVideoSurface=box(barScreenGroup,6.45,3.42,0.04,mat('#100b17',0.24,{emissive:'#301338',emissiveIntensity:0.8}),0,0,0.22,false);
+const barScreenGroup=new THREE.Group();barScreenGroup.position.set(0,4.7,-8.5);barRoot.add(barScreenGroup);
+roundedPanel(barScreenGroup,10.5,5.7,0.3,mat('#17131f',0.25,{metalness:0.4,emissive:'#64204f',emissiveIntensity:0.55}),0,0,0,0.35);
+roundedPanel(barScreenGroup,10.0,5.38,0.08,mat('#ad4b91',0.25,{metalness:0.3,emissive:'#ff45c4',emissiveIntensity:0.9}),0,0,0.18,0.3);
+const barVideoSurface=box(barScreenGroup,9.55,5.02,0.04,mat('#100b17',0.24,{emissive:'#301338',emissiveIntensity:0.8}),0,0,0.25,false);
 const barProjectionFrame=document.createElement('div');barProjectionFrame.className='room-projection room-projection-bar';barProjectionFrame.setAttribute('aria-label','Video riêng của quán bar');
 const barProjectionHint=document.createElement('div');barProjectionHint.className='projection-hint';barProjectionHint.innerHTML='<span>♫</span><b>BAR SCREEN</b><small>Thêm nhạc tại jukebox của quán bar</small>';barProjectionFrame.append(barProjectionHint);
 const barMusicPlayer=document.querySelector('#youtubeBarPlayer');barProjectionFrame.append(barMusicPlayer);host.append(barProjectionFrame);
@@ -554,8 +555,8 @@ function animate() {
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,enabled)=>{const corners=[new THREE.Vector3(-w,-h,0.23),new THREE.Vector3(w,-h,0.23),new THREE.Vector3(w,h,0.23),new THREE.Vector3(-w,h,0.23)].map(v=>screen.localToWorld(v).project(camera));const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));frame.style.left=`${left}px`;frame.style.top=`${top}px`;frame.style.width=`${right-left}px`;frame.style.height=`${bottom-top}px`;frame.style.display=enabled&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';};
   const inBar=activeRoom==='bar';
-  projectScreen(videoScreenGroup,3.6,2.025,projectionFrame,!inBar);
-  projectScreen(barScreenGroup,3.225,1.71,barProjectionFrame,inBar);
+  projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,!inBar);
+  projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,inBar);
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
