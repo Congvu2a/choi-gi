@@ -130,8 +130,8 @@ for (let i = 0; i < 3; i++) {
 for (const [x,color,rot] of [[-1.08,'#d6ff8c',-0.16],[1.07,'#ffb3c9',0.16]]) {
   const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.48,0.2),mat(color,0.72)); pillow.position.set(x,1.25,-0.08); pillow.rotation.z=rot; pillow.castShadow=true; sofa.add(pillow);
 }
-const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.68,0.58,12),mat('#cf8c9c')); pouf.position.set(-3.4,0.3,5.2); pouf.castShadow=true; pouf.receiveShadow=true; loungeRoot.add(pouf);
-const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.1,12),mat('#efb5a1')); poufTop.position.set(-3.4,0.62,5.2); poufTop.castShadow=true; loungeRoot.add(poufTop);
+const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.68,0.58,12),mat('#cf8c9c')); pouf.position.set(0,0.3,7.5); pouf.castShadow=true; pouf.receiveShadow=true; loungeRoot.add(pouf);
+const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.1,12),mat('#efb5a1')); poufTop.position.set(0,0.62,7.5); poufTop.castShadow=true; loungeRoot.add(poufTop);
 
 // Vinyl wall art and warm fairy lights bring color into the back wall.
 const wirePoints=[];for(let i=0;i<=24;i++){const x=-14+i*1.16;wirePoints.push(new THREE.Vector3(x,6.78-Math.sin(i/24*Math.PI)*0.34,-8.56))}const wire=new THREE.Line(new THREE.BufferGeometry().setFromPoints(wirePoints),new THREE.LineBasicMaterial({color:'#e2b8bb'}));loungeRoot.add(wire);
@@ -176,17 +176,17 @@ const obstacles = [];
 const roomObstacles = { lounge: obstacles, bar: [] };
 let activeRoom = 'lounge';
 const stationDefs = [
-  { id: 'guess', name: 'ĐOÁN SỐ', x: -9.0, z: -1.0, color: '#aa83ff', icon: '?', hint: 'CHƠI NHANH' },
-  { id: 'memory', name: 'TRÍ NHỚ', x: -5.1, z: -4.2, color: '#59bd9f', icon: '✦', hint: 'ĐỘNG NÃO' },
-  { id: 'rps', name: 'OẲN TÙ TÌ', x: -0.2, z: -3.2, color: '#ff9f83', icon: '✊', hint: 'ĐỐI KHÁNG' },
-  { id: 'reaction', name: 'PHẢN XẠ', x: 9.0, z: -1.0, color: '#d6ff72', icon: '⚡', hint: 'NHANH TAY' },
-  { id: 'ttt', name: 'CỜ CA-RÔ', x: 4.4, z: 3.8, color: '#8faeff', icon: '×', hint: 'ĐẤU TRÍ' },
-  { id: 'math', name: 'TÍNH NHẨM', x: -11.2, z: 4.15, color: '#ffc96e', icon: '+', hint: 'ĐỘNG NÃO' },
-  { id: 'whack', name: 'ĐẬP CHUỘT', x: -7.1, z: 5.65, color: '#ff79ae', icon: '●', hint: 'NHANH TAY' },
-  { id: 'coin', name: 'SẤP HAY NGỬA', x: 10.8, z: 4.15, color: '#67d8d0', icon: '✦', hint: 'MAY MẮN' },
-  { id: 'shooter', name: 'BẮN TÀU', x: -12.0, z: -3.6, color: '#79d8ff', icon: '✦', hint: 'BẮN TÀU VŨ TRỤ' },
-  { id: 'merge', name: '2048', x: -9.6, z: 5.9, color: '#ffb86b', icon: '8', hint: 'GHÉP SỐ' },
-  { id: 'mines', name: 'GỠ MÌN', x: 12.0, z: -3.6, color: '#c4a0ff', icon: '⚑', hint: 'DÒ MÌN' },
+  { id: 'guess', name: 'ĐOÁN SỐ', x: -12.0, z: -1.8, color: '#aa83ff', icon: '?', hint: 'CHƠI NHANH' },
+  { id: 'memory', name: 'TRÍ NHỚ', x: -6.0, z: -1.8, color: '#59bd9f', icon: '✦', hint: 'ĐỘNG NÃO' },
+  { id: 'rps', name: 'OẲN TÙ TÌ', x: 0.0, z: -1.8, color: '#ff9f83', icon: '✊', hint: 'ĐỐI KHÁNG' },
+  { id: 'reaction', name: 'PHẢN XẠ', x: 6.0, z: -1.8, color: '#d6ff72', icon: '⚡', hint: 'NHANH TAY' },
+  { id: 'ttt', name: 'CỜ CA-RÔ', x: 12.0, z: -1.8, color: '#8faeff', icon: '×', hint: 'ĐẤU TRÍ' },
+  { id: 'math', name: 'TÍNH NHẨM', x: -12.0, z: 4.2, color: '#ffc96e', icon: '+', hint: 'ĐỘNG NÃO' },
+  { id: 'whack', name: 'ĐẬP CHUỘT', x: -7.2, z: 4.2, color: '#ff79ae', icon: '🐹', hint: 'NHANH TAY' },
+  { id: 'coin', name: 'SẤP HAY NGỬA', x: -2.4, z: 4.2, color: '#67d8d0', icon: '✦', hint: 'MAY MẮN' },
+  { id: 'shooter', name: 'BẮN TÀU', x: 2.4, z: 4.2, color: '#79d8ff', icon: '✦', hint: 'BẮN TÀU VŨ TRỤ' },
+  { id: 'merge', name: '2048', x: 7.2, z: 4.2, color: '#ffb86b', icon: '8', hint: 'GHÉP SỐ' },
+  { id: 'mines', name: 'GỠ MÌN', x: 12.0, z: 4.2, color: '#c4a0ff', icon: '⚑', hint: 'DÒ MÌN' },
 ];
 function makeArcade(def) {
   const group = new THREE.Group(); group.position.set(def.x, 0, def.z); loungeRoot.add(group);
@@ -266,11 +266,11 @@ function makeChair(x,z,rotation=0) {
   chair.userData.gameId='seat'; chair.userData.name='GHẾ NGỒI'; chair.userData.room='lounge'; chair.userData.seatTarget={x:x,z:z+1.35};
   stations.push(chair); obstacles.push({x,z,r:0.72});
 }
-makeChair(-7.1,5.7,Math.PI); makeChair(8.0,5.8,Math.PI);
+makeChair(-13.0,1.2,Math.PI); makeChair(13.0,1.2,Math.PI);
 obstacles.push({x:0,z:1,r:1.35}); // low central table
-obstacles.push({x:0,z:-8.1,r:6.5}); // solid cinema screen
+obstacles.push({x:0,z:-8.1,r:4.8}); // cinema screen and wall margin
 obstacles.push({x:5,z:-6.4,r:2.15}); // sofa
-obstacles.push({x:-3.4,z:5.2,r:0.78}); // pouf
+obstacles.push({x:0,z:7.5,r:0.78}); // pouf
 for(const [x,z] of [[-13.3,-7.6],[13.3,-7.6],[-13.3,6.2],[13.3,6.0]]) obstacles.push({x,z,r:0.55});
 
 // A separate room with its own cocktail counter, dance floor, jukebox and projection screen.
