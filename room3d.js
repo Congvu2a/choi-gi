@@ -502,14 +502,20 @@ function animate() {
   playerVelocity.y=THREE.MathUtils.lerp(playerVelocity.y,dz*maxSpeed,blend);
   if(Math.abs(playerVelocity.x)<0.015)playerVelocity.x=0;
   if(Math.abs(playerVelocity.y)<0.015)playerVelocity.y=0;
-  const doorClearance=1.08;
-  const blocked=(x,z)=>obstacles.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius)||
-    (activeRoom!=='bar'&&[-5.8,5.8].some(wall=>Math.abs(x-wall)<radius+0.21&&Math.abs(z)>doorClearance));
-  const crossesDivider=(from,to,z)=>Math.abs(to-from)>0.001&&[-5.8,5.8].some(wall=>((from<wall&&to>=wall)||(from>wall&&to<=wall))&&Math.abs(z)>doorClearance);
+  const circleHitsRect=(x,z,minX,maxX,minZ,maxZ)=>{
+    const nearX=THREE.MathUtils.clamp(x,minX,maxX),nearZ=THREE.MathUtils.clamp(z,minZ,maxZ);
+    return (x-nearX)**2+(z-nearZ)**2<radius**2;
+  };
+  // Test against the actual wall rectangles, expanded by the avatar radius.
+  // The central gap remains open as a doorway; the other two room dividers are solid.
+  const hitsDivider=(x,z)=>activeRoom!=='bar'&&[-5.8,5.8].some(wall=>
+    circleHitsRect(x,z,wall-0.21,wall+0.21,-9,-1.4)||
+    circleHitsRect(x,z,wall-0.21,wall+0.21,1.4,9));
+  const blocked=(x,z)=>obstacles.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius)||hitsDivider(x,z);
   const xMin=activeRoom==='bar'?30.1:-14,xMax=activeRoom==='bar'?49.9:14;
   const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,xMin,xMax);
   const nextZ=THREE.MathUtils.clamp(player.position.z+playerVelocity.y*dt,-8,8);
-  if(!blocked(nextX,player.position.z)&&!crossesDivider(player.position.x,nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
+  if(!blocked(nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
   if(!blocked(player.position.x,nextZ))player.position.z=nextZ;else playerVelocity.y=0;
   if(activeRoom!=='bar')switchRoom(player.position.x < -5.8 ? 'left' : player.position.x > 5.8 ? 'right' : 'lounge');
   const speed=Math.hypot(playerVelocity.x,playerVelocity.y),moving=speed>0.22;
