@@ -548,7 +548,7 @@ function animate() {
   const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));
   activeProjection.style.left=`${left}px`;activeProjection.style.top=`${top}px`;activeProjection.style.width=`${right-left}px`;activeProjection.style.height=`${bottom-top}px`;
   activeProjection.style.display=bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';
-  activeProjection.style.visibility=activeRoom==='lounge'||activeRoom==='bar'?'visible':'hidden';
+  activeProjection.style.visibility='visible';
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
