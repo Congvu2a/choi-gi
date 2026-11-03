@@ -10,7 +10,7 @@
   const kicker = document.querySelector('#musicKicker');
   const queueTitle = document.querySelector('#musicQueueTitle');
   const sharedPlayer=document.querySelector('#youtubePlayer');
-  const players={lounge:sharedPlayer,left:sharedPlayer,right:sharedPlayer};
+  const players={lounge:sharedPlayer,left:sharedPlayer,right:sharedPlayer,bar:sharedPlayer};
   const queueStorageKey='choigi-youtube-queue-v1';
   let currentRoom = 'lounge';
   let queue = loadQueue(currentRoom);
@@ -147,7 +147,7 @@
 
   window.addEventListener('choigi-room-changed', e => {
     const nextRoom=e.detail?.room;
-    if(['lounge','left','right'].includes(nextRoom))currentRoom=nextRoom;
+    if(['lounge','left','right','bar'].includes(nextRoom)){currentRoom=nextRoom;if(nextRoom==='bar'&&sharedPlayer?.src)sharedPlayer.hidden=false;}
   });
 
   render();
