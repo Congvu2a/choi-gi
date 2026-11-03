@@ -156,57 +156,37 @@ function addLabel(parent, text, color) {
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture(text, color), transparent: true, depthTest: false }));
   sprite.scale.set(2.25, 0.56, 1); sprite.position.set(0, 2.55, 0); parent.add(sprite); return sprite;
 }
-function makePortal(parent,x,z,label,color,targetRoom){
-  const group=new THREE.Group();group.position.set(x,0,z);parent.add(group);
-  const glow=mat(color,0.2,{emissive:color,emissiveIntensity:1.4});
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.12,0.11,12,40),glow);ring.position.y=1.35;ring.castShadow=true;group.add(ring);
-  const base=box(group,2.8,0.14,0.7,mat('#33223c'),0,0.1,0);
-  const light=new THREE.PointLight(color,1.7,4);light.position.y=1.3;group.add(light);
-  const sign=addLabel(group,label,color);sign.position.set(0,2.8,0);sign.scale.set(2.8,0.7,1);
-  ring.userData.station=group;base.userData.station=group;
-  group.userData.gameId='door';group.userData.name=label;group.userData.room=parent.userData.roomKey||'lounge';group.userData.targetRoom=targetRoom;
-  stations.push(group);return group;
-}
-
 const stations = [];
 sofa.userData.room='lounge';stations.push(sofa);
 const obstacles = [];
-const leftRoot=new THREE.Group();leftRoot.name='phong-game-trai';leftRoot.userData.roomKey='left';leftRoot.visible=false;scene.add(leftRoot);
-const rightRoot=new THREE.Group();rightRoot.name='phong-game-phai';rightRoot.userData.roomKey='right';rightRoot.visible=false;scene.add(rightRoot);
-const roomRoots={lounge:loungeRoot,left:leftRoot,right:rightRoot};
-const roomObstacles={lounge:obstacles,left:[],right:[]};
-function buildArcadeRoom(root,{floor,wall,accent,title}){
-  box(root,30,0.35,18,mat(floor),0,-0.22,0,false);
-  box(root,30,7.5,0.38,mat(wall),0,3.53,-9.05);
-  box(root,0.38,7.5,18,mat(wall),-14.95,3.53,0);box(root,0.38,7.5,18,mat(wall),14.95,3.53,0);
-  const trim=mat(accent,0.24,{emissive:accent,emissiveIntensity:1.0});
-  box(root,29.6,0.12,0.18,trim,0,0.16,-8.78,false);
-  box(root,29.6,0.08,0.14,trim,0,6.75,-8.78,false);
-  const sign=addLabel(root,title,accent);sign.position.set(0,5.95,-8.55);sign.scale.set(5.2,1.05,1);
-  for(let i=0;i<7;i++){
-    const x=-12+i*4,ball=new THREE.Mesh(new THREE.SphereGeometry(0.12,12,8),mat(accent,0.2,{emissive:accent,emissiveIntensity:0.8}));ball.position.set(x,6.65,-7.9);root.add(ball);
-    const light=new THREE.PointLight(accent,0.5,4);light.position.set(x,6.1,-6.7);root.add(light);
-    animatedDecor.push({type:'pulseLight',light,phase:i*0.7});
+// Low dividers make three distinct wings while keeping broad, walkable openings.
+const leftTrim=mat('#7bdcff',0.22,{emissive:'#55c9ff',emissiveIntensity:0.85});
+const rightTrim=mat('#ff91cf',0.22,{emissive:'#ff5cae',emissiveIntensity:0.85});
+for(const [x,trim] of [[-5.8,leftTrim],[5.8,rightTrim]]){
+  for(const z of [-5.2,5.2]){
+    box(loungeRoot,0.34,4.9,7.6,mat('#40334f'),x,2.45,z);
+    box(loungeRoot,0.14,0.12,7.55,trim,x,4.92,z,false);
   }
+  for(const z of [-1.5,1.5])box(loungeRoot,0.38,4.9,0.16,trim,x,2.45,z,false);
 }
-buildArcadeRoom(leftRoot,{floor:'#443a5c',wall:'#382e50',accent:'#7bdcff',title:'PHÒNG GAME · TRÁI'});
-buildArcadeRoom(rightRoot,{floor:'#49384e',wall:'#3c2b49',accent:'#ff91cf',title:'PHÒNG GAME · PHẢI'});
+const wingLeft=addLabel(loungeRoot,'MINI GAME · TRÁI','#9de9ff');wingLeft.position.set(-10.2,4.45,-8.45);wingLeft.scale.set(4.0,0.82,1);
+const wingRight=addLabel(loungeRoot,'MINI GAME · PHẢI','#ffaddb');wingRight.position.set(10.2,4.45,-8.45);wingRight.scale.set(4.0,0.82,1);
 let activeRoom = 'lounge';
 const stationDefs = [
-  { id: 'guess', name: 'ĐOÁN SỐ', room:'left', x: -9.5, z: -1.6, color: '#aa83ff', icon: '?', hint: 'CHƠI NHANH' },
-  { id: 'memory', name: 'TRÍ NHỚ', room:'left', x: -3.2, z: -1.6, color: '#59bd9f', icon: '✦', hint: 'ĐỘNG NÃO' },
-  { id: 'rps', name: 'OẲN TÙ TÌ', room:'left', x: 3.2, z: -1.6, color: '#ff9f83', icon: '✊', hint: 'ĐỐI KHÁNG' },
-  { id: 'reaction', name: 'PHẢN XẠ', room:'left', x: 9.5, z: -1.6, color: '#d6ff72', icon: '⚡', hint: 'NHANH TAY' },
-  { id: 'ttt', name: 'CỜ CA-RÔ', room:'left', x: 0, z: 4.3, color: '#8faeff', icon: '×', hint: 'ĐẤU TRÍ' },
-  { id: 'math', name: 'TÍNH NHẨM', room:'right', x: -9.5, z: -1.6, color: '#ffc96e', icon: '+', hint: 'ĐỘNG NÃO' },
-  { id: 'whack', name: 'ĐẬP CHUỘT', room:'right', x: -3.2, z: -1.6, color: '#ff79ae', icon: '🐹', hint: 'NHANH TAY' },
-  { id: 'coin', name: 'SẤP HAY NGỬA', room:'right', x: 3.2, z: -1.6, color: '#67d8d0', icon: '✦', hint: 'MAY MẮN' },
-  { id: 'shooter', name: 'BẮN TÀU', room:'right', x: 9.5, z: -1.6, color: '#79d8ff', icon: '✦', hint: 'BẮN TÀU VŨ TRỤ' },
-  { id: 'merge', name: '2048', room:'right', x: -5.0, z: 4.3, color: '#ffb86b', icon: '8', hint: 'GHÉP SỐ' },
-  { id: 'mines', name: 'GỠ MÌN', room:'right', x: 5.0, z: 4.3, color: '#c4a0ff', icon: '⚑', hint: 'DÒ MÌN' },
+  { id: 'guess', name: 'ĐOÁN SỐ', room:'left', x: -11.8, z: -5.5, color: '#aa83ff', icon: '?', hint: 'CHƠI NHANH' },
+  { id: 'memory', name: 'TRÍ NHỚ', room:'left', x: -8.3, z: -5.5, color: '#59bd9f', icon: '✦', hint: 'ĐỘNG NÃO' },
+  { id: 'rps', name: 'OẲN TÙ TÌ', room:'left', x: -11.8, z: 0, color: '#ff9f83', icon: '✊', hint: 'ĐỐI KHÁNG' },
+  { id: 'reaction', name: 'PHẢN XẠ', room:'left', x: -8.3, z: 5.5, color: '#d6ff72', icon: '⚡', hint: 'NHANH TAY' },
+  { id: 'ttt', name: 'CỜ CA-RÔ', room:'left', x: -11.8, z: 5.5, color: '#8faeff', icon: '×', hint: 'ĐẤU TRÍ' },
+  { id: 'math', name: 'TÍNH NHẨM', room:'right', x: 8.3, z: -5.5, color: '#ffc96e', icon: '+', hint: 'ĐỘNG NÃO' },
+  { id: 'whack', name: 'ĐẬP CHUỘT', room:'right', x: 11.8, z: -5.5, color: '#ff79ae', icon: '🐹', hint: 'NHANH TAY' },
+  { id: 'coin', name: 'SẤP HAY NGỬA', room:'right', x: 8.3, z: 0, color: '#67d8d0', icon: '✦', hint: 'MAY MẮN' },
+  { id: 'shooter', name: 'BẮN TÀU', room:'right', x: 11.8, z: 0, color: '#79d8ff', icon: '✦', hint: 'BẮN TÀU VŨ TRỤ' },
+  { id: 'merge', name: '2048', room:'right', x: 8.3, z: 5.5, color: '#ffb86b', icon: '8', hint: 'GHÉP SỐ' },
+  { id: 'mines', name: 'GỠ MÌN', room:'right', x: 11.8, z: 5.5, color: '#c4a0ff', icon: '⚑', hint: 'DÒ MÌN' },
 ];
 function makeArcade(def) {
-  const group = new THREE.Group(); group.position.set(def.x, 0, def.z); roomRoots[def.room].add(group);
+  const group = new THREE.Group(); group.position.set(def.x, 0, def.z); loungeRoot.add(group);
   const color = new THREE.Color(def.color);
   const shell = new THREE.Mesh(new THREE.BoxGeometry(1.35, 1.85, 0.9), mat('#2e263c', 0.38));
   shell.position.y = 1.02; shell.castShadow = true; group.add(shell);
@@ -225,14 +205,14 @@ function makeArcade(def) {
   addLabel(group, def.name, def.color);
   group.userData.gameId = def.id; group.userData.name = def.name; group.userData.hitMesh = shell; group.userData.room=def.room;
   shell.userData.station = group;
-  roomObstacles[def.room].push({ x:def.x, z:def.z, r:0.92 });
+  obstacles.push({ x:def.x, z:def.z, r:0.92 });
   stations.push(group);
 }
 stationDefs.forEach(makeArcade);
 
 // A clickable retro jukebox for a personal YouTube queue.
 function makeJukebox() {
-  const group = new THREE.Group(); group.position.set(-8.2, 0, 0.2); loungeRoot.add(group);
+  const group = new THREE.Group(); group.position.set(-4.45, 0, -2.65); loungeRoot.add(group);
   const shellMat = mat('#7d4a9a', 0.32, { emissive: '#351847', emissiveIntensity: 0.3 });
   const shell = new THREE.Mesh(new THREE.BoxGeometry(1.35, 2.0, 0.88), shellMat); shell.position.y = 1.08; shell.castShadow = true; group.add(shell);
   const topArch = new THREE.Mesh(new THREE.SphereGeometry(0.68, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat('#b87ecb', 0.3, { emissive: '#8540a5', emissiveIntensity: 0.7 }));
@@ -254,7 +234,7 @@ function makeJukebox() {
   const light = new THREE.PointLight('#d98bff', 1.6, 4); light.position.set(0, 1.7, 0.9); group.add(light);
   addLabel(group, 'JUKEBOX · NHẠC', '#e3c0ff');
   group.userData.gameId = 'jukebox'; group.userData.name = 'MÁY PHÁT NHẠC'; group.userData.room='lounge'; shell.userData.station = group; stations.push(group);
-  obstacles.push({ x:-8.2, z:0.2, r:0.98 });
+  obstacles.push({ x:-4.45, z:-2.65, r:0.98 });
 }
 makeJukebox();
 
@@ -289,15 +269,6 @@ obstacles.push({x:0,z:-8.1,r:4.8}); // cinema screen and wall margin
 obstacles.push({x:5,z:-6.4,r:2.15}); // sofa
 obstacles.push({x:0,z:7.5,r:0.78}); // pouf
 for(const [x,z] of [[-13.3,-7.6],[13.3,-7.6],[-13.3,6.2],[13.3,6.0]]) obstacles.push({x,z,r:0.55});
-
-// Portals connect the central social lobby to the two arcade wings.
-const portalLeft=makePortal(loungeRoot,-12.2,3.2,'GAME · TRÁI','#7bdcff','left');
-portalLeft.userData.targetSpawn={x:0,z:-2.8};
-const portalRight=makePortal(loungeRoot,12.2,3.2,'GAME · PHẢI','#ff91cf','right');
-portalRight.userData.targetSpawn={x:0,z:-2.8};
-const portalLeftReturn=makePortal(leftRoot,0,-6.8,'VỀ SẢNH','#d6ff72','lounge');portalLeftReturn.userData.targetSpawn={x:-10.3,z:3.2};
-const portalRightReturn=makePortal(rightRoot,0,-6.8,'VỀ SẢNH','#d6ff72','lounge');portalRightReturn.userData.targetSpawn={x:10.3,z:3.2};
-const portals=[portalLeft,portalRight,portalLeftReturn,portalRightReturn];
 
 // Low-poly avatar with bobbing limbs and a soft pool of light.
 const player = new THREE.Group(); player.position.set(0, 0, 3.45); scene.add(player);
@@ -347,17 +318,15 @@ const radius=0.34;
 let seated=false;
 const playerVelocity=new THREE.Vector2();
 let walkPhase=0;
-function switchRoom(room,spawn){
+function switchRoom(room){
   const next=['lounge','left','right'].includes(room)?room:'lounge';
   if(next===activeRoom)return;
   activeRoom=next;
-  for(const [id,root] of Object.entries(roomRoots))root.visible=id===activeRoom;
-  const shell=document.querySelector('.room-shell');shell?.classList.toggle('bar-mode',activeRoom==='right');shell?.classList.toggle('left-mode',activeRoom==='left');
-  const entry=spawn||({lounge:{x:0,z:3.4},left:{x:0,z:-2.8},right:{x:0,z:-2.8}}[activeRoom]);
-  player.position.set(entry.x,0,entry.z);seated=false;player.scale.y=1;keys.clear();playerVelocity.set(0,0);
+  const shell=document.querySelector('.room-shell');shell?.classList.remove('bar-mode','left-mode');
+  seated=false;player.scale.y=1;
   const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Thêm trò mới đang chờ bạn khám phá.']}[activeRoom];
   document.querySelector('#roomEyebrow').textContent=copy[0];document.querySelector('#roomHeading').innerHTML=copy[1];document.querySelector('#roomIntro').textContent=copy[2];
-  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cổng hai bên dẫn tới phòng mini game. Máy phát ở sảnh phát nhạc xuyên cả ba phòng.':'<span>✦</span> Đi lại gần máy chơi để chơi, tìm cổng <b>VỀ SẢNH</b> để quay lại.';
+  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Đi qua lối mở bên trái hoặc phải để vào khu game. Jukebox phát nhạc chung khắp cả ba khu.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Các lối mở nối liền với sảnh ở giữa.';
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
 function openStation(station) {
@@ -366,7 +335,6 @@ function openStation(station) {
     if(typeof window.openMusicPanel==='function')window.openMusicPanel(activeRoom);
     else window.showToast('Máy phát nhạc chưa tải xong. Hãy tải lại trang một lần nhé.');
   }
-  else if(station.userData.gameId==='door')switchRoom(station.userData.targetRoom,station.userData.targetSpawn);
   else if(station.userData.gameId==='seat'){
     seated=!seated;
     playerVelocity.set(0,0);keys.clear();
@@ -383,13 +351,12 @@ function updateNearby() {
   }
   nearest = distance < 4 ? closest : null;
   if (nearest) {
-    const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat',door=nearest.userData.gameId==='door';
-    const targetName=nearest.userData.targetRoom==='left'?'phòng game bên trái':nearest.userData.targetRoom==='right'?'phòng game bên phải':'sảnh';
-    message.textContent = door ? `Cổng tới ${targetName}. Nhấn E để đi qua.` : seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? 'Máy phát chung của sảnh. Nhấn E để chọn nhạc!' : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
-    interact.lastChild.textContent = door ? ` Đi tới ${targetName}` : seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
+    const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat';
+    message.textContent = seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? 'Jukebox phát nhạc chung cho cả ba khu. Nhấn E để chọn nhạc!' : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
+    interact.lastChild.textContent = seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
     interact.classList.add('can-interact');
   } else {
-    message.textContent = activeRoom==='lounge'?'Đi tới máy phát chung, ngồi ghế hoặc chọn một trong hai cổng.':'Khám phá các máy game hoặc tìm cổng VỀ SẢNH.';
+    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':'Đi lại gần một máy game để bắt đầu chơi.';
     interact.lastChild.textContent = ' Chơi ở đây';
     interact.classList.remove('can-interact');
   }
@@ -472,11 +439,13 @@ function animate() {
   playerVelocity.y=THREE.MathUtils.lerp(playerVelocity.y,dz*maxSpeed,blend);
   if(Math.abs(playerVelocity.x)<0.015)playerVelocity.x=0;
   if(Math.abs(playerVelocity.y)<0.015)playerVelocity.y=0;
-  const blocked=(x,z)=>roomObstacles[activeRoom].some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius);
+  const blocked=(x,z)=>obstacles.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius);
+  const crossesDivider=(from,to,z)=>Math.abs(to-from)>0.001&&[-5.8,5.8].some(wall=>((from<wall&&to>=wall)||(from>wall&&to<=wall))&&Math.abs(z)>1.42);
   const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,-14,14);
   const nextZ=THREE.MathUtils.clamp(player.position.z+playerVelocity.y*dt,-8,8);
-  if(!blocked(nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
+  if(!blocked(nextX,player.position.z)&&!crossesDivider(player.position.x,nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
   if(!blocked(player.position.x,nextZ))player.position.z=nextZ;else playerVelocity.y=0;
+  switchRoom(player.position.x < -5.8 ? 'left' : player.position.x > 5.8 ? 'right' : 'lounge');
   const speed=Math.hypot(playerVelocity.x,playerVelocity.y),moving=speed>0.22;
   if(moving){const wanted=Math.atan2(playerVelocity.x,playerVelocity.y),turn=Math.atan2(Math.sin(wanted-player.rotation.y),Math.cos(wanted-player.rotation.y));player.rotation.y+=turn*(1-Math.exp(-13*dt));}
   walkPhase+=speed*dt*3.4;
@@ -490,7 +459,6 @@ function animate() {
   fan.rotation.y=t*0.48;
   screenLight.intensity=0.9+Math.sin(t*1.4)*0.22;
   orb.position.y=1.05+Math.sin(t*1.6)*0.17;
-  for(const [i,portal] of portals.entries()){const pulse=1+Math.sin(t*2.2+i)*0.07;portal.children[0].scale.setScalar(pulse);portal.children[0].rotation.z=t*0.12;}
   player.position.y = moving ? Math.abs(Math.sin(walkPhase*2)) * Math.min(0.055,speed*0.012) : Math.sin(t * 1.6) * 0.014;
   legs.forEach((leg, i) => { leg.rotation.x = moving ? Math.sin(walkPhase + i * Math.PI) * 0.38 : THREE.MathUtils.damp(leg.rotation.x,0,9,dt); });
   arms.forEach(({arm,side}) => { arm.rotation.x = moving ? Math.sin(walkPhase + (side > 0 ? Math.PI : 0)) * 0.3 : THREE.MathUtils.damp(arm.rotation.x,0,8,dt); });
