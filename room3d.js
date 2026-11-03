@@ -80,10 +80,12 @@ const projectionFrame = document.createElement('div'); projectionFrame.className
 const projectionHint = document.createElement('div'); projectionHint.className = 'projection-hint'; projectionHint.innerHTML = '<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>'; projectionFrame.append(projectionHint); host.append(projectionFrame);
 const musicPlayer = document.querySelector('#youtubePlayer'); projectionFrame.append(musicPlayer);
 const projectionShield=document.createElement('div');projectionShield.className='projection-shield';projectionShield.setAttribute('aria-label','Màn hình chỉ để xem video');projectionShield.title='Dùng máy phát nhạc để đổi bài';projectionFrame.append(projectionShield);
+Object.assign(projectionFrame.style,{pointerEvents:'auto'});musicPlayer.style.pointerEvents='none';musicPlayer.tabIndex=-1;Object.assign(projectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const barProjectionFrame=document.createElement('div'); barProjectionFrame.className='room-projection room-projection-bar'; barProjectionFrame.setAttribute('aria-label','Màn hình video trong quán bar'); barProjectionFrame.style.display='none';
 const barProjectionHint=document.createElement('div'); barProjectionHint.className='projection-hint'; barProjectionHint.innerHTML='<span>♫</span><b>BAR · LIVE</b><small>Thêm nhạc từ máy phát riêng của quán bar</small>'; barProjectionFrame.append(barProjectionHint); host.append(barProjectionFrame);
 const barMusicPlayer=document.querySelector('#youtubeBarPlayer'); barProjectionFrame.append(barMusicPlayer);
 const barProjectionShield=document.createElement('div');barProjectionShield.className='projection-shield';barProjectionShield.setAttribute('aria-label','Màn hình bar chỉ để xem video');barProjectionShield.title='Dùng máy phát nhạc để đổi bài';barProjectionFrame.append(barProjectionShield);
+Object.assign(barProjectionFrame.style,{pointerEvents:'auto'});barMusicPlayer.style.pointerEvents='none';barMusicPlayer.tabIndex=-1;Object.assign(barProjectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const musicPlayerWrap = document.querySelector('.music-player-wrap');
 if (musicPlayerWrap) { const note=document.createElement('div'); note.className='music-project-note'; note.textContent='Video đang được chiếu trên màn hình lớn trong phòng.'; musicPlayerWrap.replaceChildren(note); }
 window.addEventListener('choigi-video-active', e => {const active=e.detail?.active,room=e.detail?.room||'lounge';if(room==='bar'){barProjectionHint.hidden=Boolean(active);barScreenSurface.material.color.set(active?'#09070d':'#160b1b');}else{projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');}});
@@ -182,6 +184,9 @@ const stationDefs = [
   { id: 'math', name: 'TÍNH NHẨM', x: -11.2, z: 4.15, color: '#ffc96e', icon: '+', hint: 'ĐỘNG NÃO' },
   { id: 'whack', name: 'ĐẬP CHUỘT', x: -7.1, z: 5.65, color: '#ff79ae', icon: '●', hint: 'NHANH TAY' },
   { id: 'coin', name: 'SẤP HAY NGỬA', x: 10.8, z: 4.15, color: '#67d8d0', icon: '✦', hint: 'MAY MẮN' },
+  { id: 'shooter', name: 'BẮN TÀU', x: -12.0, z: -3.6, color: '#79d8ff', icon: '✦', hint: 'BẮN TÀU VŨ TRỤ' },
+  { id: 'merge', name: '2048', x: -9.6, z: 5.9, color: '#ffb86b', icon: '8', hint: 'GHÉP SỐ' },
+  { id: 'mines', name: 'GỠ MÌN', x: 12.0, z: -3.6, color: '#c4a0ff', icon: '⚑', hint: 'DÒ MÌN' },
 ];
 function makeArcade(def) {
   const group = new THREE.Group(); group.position.set(def.x, 0, def.z); loungeRoot.add(group);
