@@ -84,7 +84,7 @@ const projectionShield=document.createElement('div');projectionShield.className=
 Object.assign(projectionFrame.style,{pointerEvents:'auto'});musicPlayer.style.pointerEvents='none';musicPlayer.tabIndex=-1;Object.assign(projectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const musicPlayerWrap = document.querySelector('.music-player-wrap');
 if (musicPlayerWrap) { const note=document.createElement('div'); note.className='music-project-note'; note.textContent='Video đang được chiếu trên màn hình lớn trong phòng.'; musicPlayerWrap.replaceChildren(note); }
-window.addEventListener('choigi-video-active', e => {const active=e.detail?.active;projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');});
+window.addEventListener('choigi-video-active', e => {const active=e.detail?.active;projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');if(typeof barVideoSurface!=='undefined')barVideoSurface.material.color.set(active?'#090a12':'#301338');});
 
 // Layered oval rug, stitched border, and low central table.
 const rug = new THREE.Mesh(new THREE.CylinderGeometry(4.8, 4.8, 0.08, 64), mat('#a66584'));
@@ -159,15 +159,73 @@ function addLabel(parent, text, color) {
 const stations = [];
 sofa.userData.room='lounge';stations.push(sofa);
 const obstacles = [];
-// Low dividers make three distinct wings while keeping broad, walkable openings.
+function makeLobbyPortal(x,z,label,color,targetRoom,targetPosition){
+  const portal=new THREE.Group();portal.position.set(x,0,z);loungeRoot.add(portal);
+  const glow=mat(color,0.2,{emissive:color,emissiveIntensity:1.5});
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(0.82,0.12,12,40),glow);ring.position.y=1.25;ring.castShadow=true;portal.add(ring);
+  const core=new THREE.Mesh(new THREE.CircleGeometry(0.68,32),mat(color,0.25,{emissive:color,emissiveIntensity:0.42,transparent:true,opacity:0.4,side:THREE.DoubleSide}));core.position.y=1.25;portal.add(core);
+  const base=box(portal,1.9,0.16,0.7,mat('#30243b'),0,0.12,0);base.userData.station=portal;
+  const light=new THREE.PointLight(color,1.6,4);light.position.y=1.3;portal.add(light);
+  const sign=addLabel(portal,label,color);sign.position.set(0,2.45,0);sign.scale.set(2.55,0.62,1);
+  portal.userData.gameId='door';portal.userData.name=label;portal.userData.room='lounge';portal.userData.targetRoom=targetRoom;portal.userData.targetPosition=targetPosition;
+  ring.userData.station=portal;stations.push(portal);animatedDecor.push({type:'portal',mesh:ring,phase:x});
+  return portal;
+}
+// The game wings are reached through their doorways. Only the bar gets a lobby portal.
+makeLobbyPortal(4.2,6.8,'CỔNG · QUÁN BAR','#ff91cf','bar',{x:40,z:3.45});
+// The bar is a separate fourth space, reached only from the lobby gate.
+const barRoot=new THREE.Group();barRoot.name='quan-bar';barRoot.position.set(40,0,0);scene.add(barRoot);
+const barFloor=mat('#302b3c');
+box(barRoot,21,0.35,18,barFloor,0,-0.22,0);
+box(barRoot,21,7.5,0.38,mat('#291f36'),0,3.53,-9.05);
+box(barRoot,0.38,7.5,18,mat('#291f36'),-10.45,3.53,0);box(barRoot,0.38,7.5,18,mat('#291f36'),10.45,3.53,0);
+const barNeon=mat('#ff58bd',0.22,{emissive:'#ff28ac',emissiveIntensity:1.2});
+box(barRoot,18,0.14,0.18,barNeon,0,6.75,-8.78,false);
+const barSign=addLabel(barRoot,'NIGHT OWL · BAR','#ff9cda');barSign.position.set(0,5.7,-8.55);barSign.scale.set(5.5,1.0,1);
+const barScreenGroup=new THREE.Group();barScreenGroup.position.set(0,4.8,-8.5);barRoot.add(barScreenGroup);
+roundedPanel(barScreenGroup,7.0,3.9,0.3,mat('#17131f',0.25,{metalness:0.4,emissive:'#64204f',emissiveIntensity:0.55}),0,0,0,0.35);
+const barVideoSurface=box(barScreenGroup,6.45,3.42,0.04,mat('#100b17',0.24,{emissive:'#301338',emissiveIntensity:0.8}),0,0,0.22,false);
+const counter=new THREE.Group();counter.position.set(40,0,-1.1);scene.add(counter);
+box(counter,7.2,1.2,1.45,mat('#613956'),0,0.75,0);
+box(counter,7.55,0.24,1.75,mat('#d18cb9',0.32,{metalness:0.25}),0,1.43,0);
+box(counter,6.85,0.1,0.08,barNeon,0,0.75,0.76,false);
+obstacles.push({x:40,z:-1.1,r:3.45});
+for(let i=0;i<7;i++){
+  const bottle=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.16,0.5+(i%3)*0.12,8),mat(i%2?'#7bdcff':'#d6ff72',0.28,{emissive:i%2?'#248db2':'#7bba32',emissiveIntensity:0.55}));
+  bottle.position.set(-2.8+i*0.92,1.78,-0.1);bottle.castShadow=true;counter.add(bottle);
+}
+const disco=new THREE.Group();disco.position.set(40,6.1,-1.6);scene.add(disco);
+const discoBall=new THREE.Mesh(new THREE.SphereGeometry(0.65,16,12),mat('#bdb6cf',0.25,{metalness:0.8,roughness:0.2}));disco.add(discoBall);
+for(let i=0;i<4;i++){const beam=new THREE.SpotLight(['#ff58bd','#58dfff','#d6ff72','#a882ff'][i],1.8,16,0.25,0.6,1.3);beam.position.set(40+(i-1.5)*3,6.5,2);beam.target.position.set(40+(i-1.5)*2,0,-2);scene.add(beam,beam.target);animatedDecor.push({type:'barBeam',light:beam,phase:i*1.6});}
+for(const x of [36.5,40,43.5]){
+  const stool=new THREE.Group();stool.position.set(x,0,1.8);scene.add(stool);
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.16,0.85,10),mat('#40334f'));stem.position.y=0.46;stool.add(stem);
+  const cushion=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.48,0.2,14),mat('#c879aa'));cushion.position.y=0.98;cushion.castShadow=true;stool.add(cushion);
+  stool.userData.gameId='seat';stool.userData.name='GHẾ QUẦY BAR';stool.userData.room='bar';stool.userData.seatTarget={x,z:2.75};stool.children[0].userData.station=stool;stations.push(stool);obstacles.push({x,z:1.8,r:0.58});
+}
+const barReturn=new THREE.Group();barReturn.position.set(40,0,6.8);scene.add(barReturn);
+const returnRing=new THREE.Mesh(new THREE.TorusGeometry(0.72,0.1,10,32),mat('#d6ff72',0.2,{emissive:'#b3f45c',emissiveIntensity:1.3}));returnRing.position.y=1.15;barReturn.add(returnRing);
+const returnBase=box(barReturn,1.8,0.14,0.65,mat('#30243b'),0,0.1,0);returnBase.userData.station=barReturn;
+const returnSign=addLabel(barReturn,'VỀ SẢNH','#d6ff72');returnSign.position.set(0,2.25,0);returnSign.scale.set(2.4,0.58,1);
+barReturn.userData.gameId='door';barReturn.userData.name='CỔNG VỀ SẢNH';barReturn.userData.room='bar';barReturn.userData.targetRoom='lounge';barReturn.userData.targetPosition={x:0,z:3.45};returnRing.userData.station=barReturn;stations.push(barReturn);
+// Full-height partitions divide the cutaway scene into three actual rooms.
 const leftTrim=mat('#7bdcff',0.22,{emissive:'#55c9ff',emissiveIntensity:0.85});
 const rightTrim=mat('#ff91cf',0.22,{emissive:'#ff5cae',emissiveIntensity:0.85});
 for(const [x,trim] of [[-5.8,leftTrim],[5.8,rightTrim]]){
   for(const z of [-5.2,5.2]){
-    box(loungeRoot,0.34,4.9,7.6,mat('#40334f'),x,2.45,z);
-    box(loungeRoot,0.14,0.12,7.55,trim,x,4.92,z,false);
+    box(loungeRoot,0.42,7.15,7.6,mat('#30283e'),x,3.575,z);
+    box(loungeRoot,0.16,0.16,7.55,trim,x,7.12,z,false);
   }
-  for(const z of [-1.5,1.5])box(loungeRoot,0.38,4.9,0.16,trim,x,2.45,z,false);
+  // Door jambs and lintel leave a real walk-through opening at the center.
+  for(const z of [-1.52,1.52])box(loungeRoot,0.5,5.7,0.18,trim,x,2.85,z,false);
+  box(loungeRoot,0.5,0.42,3.2,trim,x,5.92,0,false);
+}
+// Separate floor finishes make each room read as its own space.
+box(loungeRoot,9.05,0.045,17.5,mat('#40374d'),-10.45,-0.012,0,false);
+box(loungeRoot,9.05,0.045,17.5,mat('#483548'),10.45,-0.012,0,false);
+for(const [x,color] of [[-10.45,'#7bdcff'],[10.45,'#ff91cf']]){
+  const stripe=mat(color,0.24,{emissive:color,emissiveIntensity:0.45});
+  box(loungeRoot,0.12,0.035,16.8,stripe,x,-0.005,0,false);
 }
 const wingLeft=addLabel(loungeRoot,'MINI GAME · TRÁI','#9de9ff');wingLeft.position.set(-10.2,4.45,-8.45);wingLeft.scale.set(4.0,0.82,1);
 const wingRight=addLabel(loungeRoot,'MINI GAME · PHẢI','#ffaddb');wingRight.position.set(10.2,4.45,-8.45);wingRight.scale.set(4.0,0.82,1);
@@ -319,14 +377,14 @@ let seated=false;
 const playerVelocity=new THREE.Vector2();
 let walkPhase=0;
 function switchRoom(room){
-  const next=['lounge','left','right'].includes(room)?room:'lounge';
+  const next=['lounge','left','right','bar'].includes(room)?room:'lounge';
   if(next===activeRoom)return;
   activeRoom=next;
   const shell=document.querySelector('.room-shell');shell?.classList.remove('bar-mode','left-mode');
   seated=false;player.scale.y=1;
-  const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Thêm trò mới đang chờ bạn khám phá.']}[activeRoom];
+  const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],bar:['NIGHT OWL · BAR','Quán bar <span>✦</span>','Nghe nhạc, xem video và ngồi ở quầy bar.']}[activeRoom];
   document.querySelector('#roomEyebrow').textContent=copy[0];document.querySelector('#roomHeading').innerHTML=copy[1];document.querySelector('#roomIntro').textContent=copy[2];
-  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Đi qua lối mở bên trái hoặc phải để vào khu game. Jukebox phát nhạc chung khắp cả ba khu.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Các lối mở nối liền với sảnh ở giữa.';
+  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối thẳng tới phòng game. Cổng dịch chuyển ở sảnh đưa bạn tới quán bar. Nhạc vẫn phát chung.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
 function openStation(station) {
@@ -334,6 +392,11 @@ function openStation(station) {
   if(station.userData.gameId==='jukebox'){
     if(typeof window.openMusicPanel==='function')window.openMusicPanel(activeRoom);
     else window.showToast('Máy phát nhạc chưa tải xong. Hãy tải lại trang một lần nhé.');
+  }
+  else if(station.userData.gameId==='door'){
+    player.position.set(station.userData.targetPosition.x,0,station.userData.targetPosition.z);
+    playerVelocity.set(0,0);keys.clear();seated=false;player.scale.y=1;
+    switchRoom(station.userData.targetRoom);
   }
   else if(station.userData.gameId==='seat'){
     seated=!seated;
@@ -351,9 +414,9 @@ function updateNearby() {
   }
   nearest = distance < 4 ? closest : null;
   if (nearest) {
-    const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat';
-    message.textContent = seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? 'Jukebox phát nhạc chung cho cả ba khu. Nhấn E để chọn nhạc!' : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
-    interact.lastChild.textContent = seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
+    const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat',door=nearest.userData.gameId==='door';
+    message.textContent = door ? `Nhấn E để tới ${nearest.userData.targetRoom==='bar'?'quán bar':'sảnh'}.` : seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? 'Jukebox phát nhạc chung cho cả ba khu. Nhấn E để chọn nhạc!' : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
+    interact.lastChild.textContent = door ? ` Đi tới ${nearest.userData.targetRoom==='bar'?'quán bar':'sảnh'}` : seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
     interact.classList.add('can-interact');
   } else {
     message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':'Đi lại gần một máy game để bắt đầu chơi.';
@@ -374,7 +437,8 @@ function pointerPosition(event) {
   pointer.y = -((event.clientY - r.top) / r.height) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
   const hits = raycaster.intersectObjects(stations.filter(item=>item.userData.room===activeRoom), true);
-  const screenHit=activeRoom==='lounge'?raycaster.intersectObject(videoScreenSurface,false)[0]:null;
+  const screenSurface=activeRoom==='bar'?barVideoSurface:videoScreenSurface;
+  const screenHit=activeRoom==='lounge'||activeRoom==='bar'?raycaster.intersectObject(screenSurface,false)[0]:null;
   if(screenHit&&(!hits[0]||screenHit.distance<hits[0].distance))return null;
   return hits.map(h => h.object.userData.station || h.object.parent).find(o => o?.userData?.gameId) || null;
 }
@@ -441,11 +505,12 @@ function animate() {
   if(Math.abs(playerVelocity.y)<0.015)playerVelocity.y=0;
   const blocked=(x,z)=>obstacles.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+radius);
   const crossesDivider=(from,to,z)=>Math.abs(to-from)>0.001&&[-5.8,5.8].some(wall=>((from<wall&&to>=wall)||(from>wall&&to<=wall))&&Math.abs(z)>1.42);
-  const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,-14,14);
+  const xMin=activeRoom==='bar'?29.5:-14,xMax=activeRoom==='bar'?50.5:14;
+  const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,xMin,xMax);
   const nextZ=THREE.MathUtils.clamp(player.position.z+playerVelocity.y*dt,-8,8);
   if(!blocked(nextX,player.position.z)&&!crossesDivider(player.position.x,nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
   if(!blocked(player.position.x,nextZ))player.position.z=nextZ;else playerVelocity.y=0;
-  switchRoom(player.position.x < -5.8 ? 'left' : player.position.x > 5.8 ? 'right' : 'lounge');
+  if(activeRoom!=='bar')switchRoom(player.position.x < -5.8 ? 'left' : player.position.x > 5.8 ? 'right' : 'lounge');
   const speed=Math.hypot(playerVelocity.x,playerVelocity.y),moving=speed>0.22;
   if(moving){const wanted=Math.atan2(playerVelocity.x,playerVelocity.y),turn=Math.atan2(Math.sin(wanted-player.rotation.y),Math.cos(wanted-player.rotation.y));player.rotation.y+=turn*(1-Math.exp(-13*dt));}
   walkPhase+=speed*dt*3.4;
@@ -454,7 +519,7 @@ function animate() {
   const cameraBlend=1-Math.exp(-4.2*dt);
   camera.position.lerp(cameraGoal,cameraBlend);cameraLook.lerp(lookGoal,cameraBlend);camera.lookAt(cameraLook);
   const t = clock.elapsedTime;
-  for(const item of animatedDecor){if(item.type==='leaf')item.mesh.rotation.z=item.base+Math.sin(t*1.1+item.phase)*0.075;else if(item.type==='record')item.mesh.rotation.z=t*1.7;else if(item.type==='neon')item.mesh.material.emissiveIntensity=0.75+Math.sin(t*2+item.phase)*0.35;else if(item.type==='pulseLight')item.light.intensity=0.28+Math.max(0,Math.sin(t*2+item.phase))*0.55;}
+  for(const item of animatedDecor){if(item.type==='leaf')item.mesh.rotation.z=item.base+Math.sin(t*1.1+item.phase)*0.075;else if(item.type==='record')item.mesh.rotation.z=t*1.7;else if(item.type==='neon')item.mesh.material.emissiveIntensity=0.75+Math.sin(t*2+item.phase)*0.35;else if(item.type==='pulseLight')item.light.intensity=0.28+Math.max(0,Math.sin(t*2+item.phase))*0.55;else if(item.type==='portal'){item.mesh.rotation.z=t*0.16;item.mesh.scale.setScalar(1+Math.sin(t*2.2+item.phase)*0.055);}else if(item.type==='barBeam')item.light.intensity=0.7+Math.max(0,Math.sin(t*2+item.phase))*1.8;}
   for(const mote of fireflies){const a=t*mote.speed+mote.phase;mote.mesh.position.set(Math.cos(a)*mote.radiusX,mote.baseY+Math.sin(t*1.3+mote.phase)*0.34,Math.sin(a*0.82)*mote.radiusZ);mote.mesh.rotation.x=a;mote.mesh.rotation.y=a*0.7;}
   fan.rotation.y=t*0.48;
   screenLight.intensity=0.9+Math.sin(t*1.4)*0.22;
@@ -468,15 +533,15 @@ function animate() {
   }
   updateNearby();
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
-  const activeScreen=videoScreenGroup;
-  const halfWidth=3.6,halfHeight=2.025;
+  const activeScreen=activeRoom==='bar'?barScreenGroup:videoScreenGroup;
+  const halfWidth=activeRoom==='bar'?3.225:3.6,halfHeight=activeRoom==='bar'?1.71:2.025;
   const activeProjection=projectionFrame;
   const corners=[new THREE.Vector3(-halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,halfHeight,0.23),new THREE.Vector3(-halfWidth,halfHeight,0.23)].map(v=>activeScreen.localToWorld(v).project(camera));
   const rect=host.getBoundingClientRect(), px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));
   const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));
   activeProjection.style.left=`${left}px`;activeProjection.style.top=`${top}px`;activeProjection.style.width=`${right-left}px`;activeProjection.style.height=`${bottom-top}px`;
   activeProjection.style.display=bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';
-  activeProjection.style.visibility=activeRoom==='lounge'?'visible':'hidden';
+  activeProjection.style.visibility=activeRoom==='lounge'||activeRoom==='bar'?'visible':'hidden';
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
