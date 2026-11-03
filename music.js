@@ -9,14 +9,9 @@
   const title = document.querySelector('#musicTitle');
   const kicker = document.querySelector('#musicKicker');
   const queueTitle = document.querySelector('#musicQueueTitle');
-  const players = {
-    lounge: document.querySelector('#youtubePlayer'),
-    bar: document.querySelector('#youtubeBarPlayer'),
-  };
-  const storageKeys = {
-    lounge: 'choigi-youtube-queue-v1',
-    bar: 'choigi-youtube-queue-bar-v1',
-  };
+  const sharedPlayer=document.querySelector('#youtubePlayer');
+  const players={lounge:sharedPlayer,left:sharedPlayer,right:sharedPlayer};
+  const queueStorageKey='choigi-youtube-queue-v1';
   let currentRoom = 'lounge';
   let queue = loadQueue(currentRoom);
 
@@ -58,15 +53,15 @@
     }).filter(Boolean);
   }
 
-  function loadQueue(room) {
+  function loadQueue() {
     try {
-      const raw = localStorage.getItem(storageKeys[room]) || (room === 'lounge' ? localStorage.getItem('choigi-youtube-queue-v1') : '[]') || '[]';
+      const raw = localStorage.getItem(queueStorageKey) || '[]';
       return normalizeQueue(JSON.parse(raw));
     } catch { return []; }
   }
 
   function save() {
-    try { localStorage.setItem(storageKeys[currentRoom], JSON.stringify(queue)); }
+    try { localStorage.setItem(queueStorageKey, JSON.stringify(queue)); }
     catch { window.showToast('Không lưu được danh sách trên thiết bị này.'); }
   }
 
@@ -123,10 +118,10 @@
 
   window.openMusicPanel = (room = 'lounge') => {
     currentRoom = room === 'bar' ? 'bar' : 'lounge';
-    queue = loadQueue(currentRoom);
-    title.textContent = currentRoom === 'bar' ? 'Máy phát nhạc · Bar' : 'Góc phát nhạc';
-    kicker.textContent = currentRoom === 'bar' ? 'JUKEBOX · BAR RIÊNG' : 'JUKEBOX · SẢNH GAME';
-    queueTitle.textContent = currentRoom === 'bar' ? 'Danh sách nhạc của Bar' : 'Danh sách của bạn';
+    queue = loadQueue();
+    title.textContent = 'Máy phát nhạc chung';
+    kicker.textContent = 'JUKEBOX · CẢ BA PHÒNG';
+    queueTitle.textContent = 'Danh sách nhạc chung';
     externalLink.hidden = !players[currentRoom]?.src;
     updatePlayerNote(); render(); overlay.hidden = false; urlField.focus();
   };
@@ -140,7 +135,7 @@
     if (!parsed) { window.showToast('Link chưa đúng. Hãy dán link video hoặc playlist YouTube.'); return; }
     const item = { ...parsed, name: nameField.value.trim() || (parsed.type === 'playlist' ? 'Playlist YouTube' : `Video ${parsed.id.slice(0, 6)}…`) };
     queue.push(item); save(); render(); play(item); urlField.value = ''; nameField.value = '';
-    window.showToast(currentRoom === 'bar' ? 'Đã thêm nhạc riêng cho Bar!' : 'Đã thêm nhạc vào danh sách!');
+    window.showToast('Đã thêm nhạc cho cả ba phòng!');
   });
 
   document.querySelector('#clearMusicQueue').addEventListener('click', () => {
@@ -151,14 +146,8 @@
   });
 
   window.addEventListener('choigi-room-changed', e => {
-    const nextRoom = e.detail?.room === 'bar' ? 'bar' : 'lounge';
-    const oldRoom = currentRoom;
-    if (oldRoom !== nextRoom) {
-      const oldPlayer = players[oldRoom]; oldPlayer.src = ''; oldPlayer.hidden = true;
-      window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: false, room: oldRoom } }));
-      currentRoom = nextRoom; queue = loadQueue(currentRoom);
-      if (!overlay.hidden) window.openMusicPanel(currentRoom);
-    }
+    const nextRoom=e.detail?.room;
+    if(['lounge','left','right'].includes(nextRoom))currentRoom=nextRoom;
   });
 
   render();
