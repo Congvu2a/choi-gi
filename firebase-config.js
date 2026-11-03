@@ -1,7 +1,7 @@
 // Dán cấu hình Web App từ Firebase Console vào đây.
 // Các giá trị Firebase Web config là mã nhận diện ứng dụng; không dán private key/service account.
 export const firebaseConfig = {
-  apiKey: 'AIzaSyDKQj4x9Q36Vh_gJSHpbLZMKxW2kd7lfaA',
+  apiKey: 'AIzaSyDKQj4x9Q36Vh_gJsHPblZMKxW2kd7lfaA',
   authDomain: 'web-choigi.firebaseapp.com',
   databaseURL: 'https://web-choigi-default-rtdb.asia-southeast1.firebasedatabase.app',
   projectId: 'web-choigi',
