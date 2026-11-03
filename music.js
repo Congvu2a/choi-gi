@@ -9,11 +9,12 @@
   const title = document.querySelector('#musicTitle');
   const kicker = document.querySelector('#musicKicker');
   const queueTitle = document.querySelector('#musicQueueTitle');
-  const sharedPlayer=document.querySelector('#youtubePlayer');
-  const players={lounge:sharedPlayer,left:sharedPlayer,right:sharedPlayer,bar:sharedPlayer};
-  const queueStorageKey='choigi-youtube-queue-v1';
+  const gamePlayer=document.querySelector('#youtubePlayer');
+  const barPlayer=document.querySelector('#youtubeBarPlayer');
+  const players={game:gamePlayer,bar:barPlayer};
+  const queueStorageKey=room=>`choigi-youtube-queue-v2-${room}`;
   let currentRoom = 'lounge';
-  let queue = loadQueue(currentRoom);
+  let queue = loadQueue(currentRoom === 'bar' ? 'bar' : 'game');
 
   function parseYouTube(raw) {
     let url;
@@ -53,15 +54,16 @@
     }).filter(Boolean);
   }
 
-  function loadQueue() {
+  function loadQueue(room) {
     try {
-      const raw = localStorage.getItem(queueStorageKey) || '[]';
+      const saved = localStorage.getItem(queueStorageKey(room));
+      const raw = saved || (room === 'game' ? localStorage.getItem('choigi-youtube-queue-v1') : null) || '[]';
       return normalizeQueue(JSON.parse(raw));
     } catch { return []; }
   }
 
   function save() {
-    try { localStorage.setItem(queueStorageKey, JSON.stringify(queue)); }
+    try { localStorage.setItem(queueStorageKey(currentRoom === 'bar' ? 'bar' : 'game'), JSON.stringify(queue)); }
     catch { window.showToast('Không lưu được danh sách trên thiết bị này.'); }
   }
 
@@ -69,11 +71,13 @@
 
   function updatePlayerNote() {
     if (!empty) return;
-    empty.hidden = Boolean(players[currentRoom]?.src);
+    empty.hidden = Boolean(getPlayer()?.src);
   }
 
+  function getPlayer() { return players[currentRoom === 'bar' ? 'bar' : 'game']; }
+
   function play(item) {
-    const player = players[currentRoom];
+    const player = getPlayer();
     if (!player) return;
     const base = item.type === 'playlist'
       ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(item.id)}`
@@ -85,7 +89,7 @@
     player.src = target.toString();
     player.hidden = false;
     updatePlayerNote();
-    window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: true, room: currentRoom, item } }));
+    window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: true, room: currentRoom === 'bar' ? 'bar' : 'game', item } }));
     externalLink.href = item.type === 'playlist'
       ? `https://www.youtube.com/playlist?list=${encodeURIComponent(item.id)}`
       : `https://www.youtube.com/watch?v=${encodeURIComponent(item.id)}`;
@@ -117,12 +121,13 @@
   }
 
   window.openMusicPanel = (room = 'lounge') => {
-    currentRoom = room === 'bar' ? 'bar' : 'lounge';
-    queue = loadQueue();
-    title.textContent = 'Máy phát nhạc chung';
-    kicker.textContent = 'JUKEBOX · CẢ BA PHÒNG';
-    queueTitle.textContent = 'Danh sách nhạc chung';
-    externalLink.hidden = !players[currentRoom]?.src;
+    currentRoom = room === 'bar' ? 'bar' : 'game';
+    queue = loadQueue(currentRoom);
+    title.textContent = currentRoom === 'bar' ? 'Máy phát nhạc quán bar' : 'Máy phát nhạc phòng game';
+    kicker.textContent = currentRoom === 'bar' ? 'JUKEBOX · QUÁN BAR RIÊNG' : 'JUKEBOX · HAI PHÒNG GAME';
+    queueTitle.textContent = currentRoom === 'bar' ? 'Danh sách nhạc quán bar' : 'Danh sách nhạc chung hai phòng game';
+    document.querySelector('#musicNote').textContent = currentRoom === 'bar' ? 'Nhạc và video của quán bar độc lập với hai phòng game.' : 'Hai phòng game dùng chung danh sách và màn hình.';
+    externalLink.hidden = !getPlayer()?.src;
     updatePlayerNote(); render(); overlay.hidden = false; urlField.focus();
   };
 
@@ -135,19 +140,19 @@
     if (!parsed) { window.showToast('Link chưa đúng. Hãy dán link video hoặc playlist YouTube.'); return; }
     const item = { ...parsed, name: nameField.value.trim() || (parsed.type === 'playlist' ? 'Playlist YouTube' : `Video ${parsed.id.slice(0, 6)}…`) };
     queue.push(item); save(); render(); play(item); urlField.value = ''; nameField.value = '';
-    window.showToast('Đã thêm nhạc cho cả ba phòng!');
+    window.showToast(currentRoom === 'bar' ? 'Đã thêm nhạc riêng cho quán bar!' : 'Đã thêm nhạc chung cho hai phòng game!');
   });
 
   document.querySelector('#clearMusicQueue').addEventListener('click', () => {
     queue = []; save(); render();
-    const player = players[currentRoom]; player.src = ''; player.hidden = true;
+    const player = getPlayer(); player.src = ''; player.hidden = true;
     externalLink.hidden = true; updatePlayerNote();
     window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: false, room: currentRoom } }));
   });
 
   window.addEventListener('choigi-room-changed', e => {
     const nextRoom=e.detail?.room;
-    if(['lounge','left','right','bar'].includes(nextRoom)){currentRoom=nextRoom;if(nextRoom==='bar'&&sharedPlayer?.src)sharedPlayer.hidden=false;}
+    if(['lounge','left','right','bar'].includes(nextRoom)){currentRoom=nextRoom==='bar'?'bar':'game';const player=getPlayer();if(player?.src)player.hidden=false;}
   });
 
   render();

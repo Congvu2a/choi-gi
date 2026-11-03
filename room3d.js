@@ -84,7 +84,7 @@ const projectionShield=document.createElement('div');projectionShield.className=
 Object.assign(projectionFrame.style,{pointerEvents:'auto'});musicPlayer.style.pointerEvents='none';musicPlayer.tabIndex=-1;Object.assign(projectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const musicPlayerWrap = document.querySelector('.music-player-wrap');
 if (musicPlayerWrap) { const note=document.createElement('div'); note.className='music-project-note'; note.textContent='Video đang được chiếu trên màn hình lớn trong phòng.'; musicPlayerWrap.replaceChildren(note); }
-window.addEventListener('choigi-video-active', e => {const active=e.detail?.active;projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');if(typeof barVideoSurface!=='undefined')barVideoSurface.material.color.set(active?'#090a12':'#301338');});
+window.addEventListener('choigi-video-active', e => {const active=e.detail?.active,room=e.detail?.room;const isBar=room==='bar';if(isBar){if(typeof barProjectionHint!=='undefined')barProjectionHint.hidden=Boolean(active);if(typeof barVideoSurface!=='undefined')barVideoSurface.material.color.set(active?'#090a12':'#301338');}else{projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');}});
 
 // Layered oval rug, stitched border, and low central table.
 const rug = new THREE.Mesh(new THREE.CylinderGeometry(4.8, 4.8, 0.08, 64), mat('#a66584'));
@@ -185,6 +185,11 @@ const barSign=addLabel(barRoot,'NIGHT OWL · BAR','#ff9cda');barSign.position.se
 const barScreenGroup=new THREE.Group();barScreenGroup.position.set(0,4.8,-8.5);barRoot.add(barScreenGroup);
 roundedPanel(barScreenGroup,7.0,3.9,0.3,mat('#17131f',0.25,{metalness:0.4,emissive:'#64204f',emissiveIntensity:0.55}),0,0,0,0.35);
 const barVideoSurface=box(barScreenGroup,6.45,3.42,0.04,mat('#100b17',0.24,{emissive:'#301338',emissiveIntensity:0.8}),0,0,0.22,false);
+const barProjectionFrame=document.createElement('div');barProjectionFrame.className='room-projection room-projection-bar';barProjectionFrame.setAttribute('aria-label','Video riêng của quán bar');
+const barProjectionHint=document.createElement('div');barProjectionHint.className='projection-hint';barProjectionHint.innerHTML='<span>♫</span><b>BAR SCREEN</b><small>Thêm nhạc tại jukebox của quán bar</small>';barProjectionFrame.append(barProjectionHint);
+const barMusicPlayer=document.querySelector('#youtubeBarPlayer');barProjectionFrame.append(barMusicPlayer);host.append(barProjectionFrame);
+const barProjectionShield=document.createElement('div');barProjectionShield.className='projection-shield';barProjectionShield.setAttribute('aria-label','Màn hình chỉ để xem video');barProjectionFrame.append(barProjectionShield);
+Object.assign(barProjectionFrame.style,{pointerEvents:'auto'});barMusicPlayer.style.pointerEvents='none';barMusicPlayer.tabIndex=-1;Object.assign(barProjectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const counter=new THREE.Group();counter.position.set(40,0,-1.1);scene.add(counter);
 box(counter,7.2,1.2,1.45,mat('#613956'),0,0.75,0);
 box(counter,7.55,0.24,1.75,mat('#d18cb9',0.32,{metalness:0.25}),0,1.43,0);
@@ -194,6 +199,12 @@ for(let i=0;i<7;i++){
   const bottle=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.16,0.5+(i%3)*0.12,8),mat(i%2?'#7bdcff':'#d6ff72',0.28,{emissive:i%2?'#248db2':'#7bba32',emissiveIntensity:0.55}));
   bottle.position.set(-2.8+i*0.92,1.78,-0.1);bottle.castShadow=true;counter.add(bottle);
 }
+// The bar has its own jukebox and independent YouTube queue.
+const barJukebox=new THREE.Group();barJukebox.position.set(34.3,0,-3.2);scene.add(barJukebox);
+const barJukeboxShell=box(barJukebox,1.35,2.0,0.88,mat('#7d356c',0.32,{emissive:'#612253',emissiveIntensity:0.55}),0,1.08,0);
+box(barJukebox,1.02,1.08,0.08,mat('#17111f'),0,1.28,0.48,false);
+const barRecord=new THREE.Mesh(new THREE.CylinderGeometry(0.37,0.37,0.07,32),mat('#e26bb3',0.24,{emissive:'#ff45b0',emissiveIntensity:0.8}));barRecord.rotation.x=Math.PI/2;barRecord.position.set(0,1.45,0.56);barJukebox.add(barRecord);animatedDecor.push({type:'record',mesh:barRecord});
+addLabel(barJukebox,'JUKEBOX · BAR','#ff9cda');barJukebox.userData.gameId='jukebox';barJukebox.userData.name='JUKEBOX QUÁN BAR';barJukebox.userData.room='bar';barJukeboxShell.userData.station=barJukebox;stations.push(barJukebox);obstacles.push({x:34.3,z:-3.2,r:0.95});
 const disco=new THREE.Group();disco.position.set(40,6.1,-1.6);scene.add(disco);
 const discoBall=new THREE.Mesh(new THREE.SphereGeometry(0.65,16,12),mat('#bdb6cf',0.25,{metalness:0.8,roughness:0.2}));disco.add(discoBall);
 for(let i=0;i<4;i++){const beam=new THREE.SpotLight(['#ff58bd','#58dfff','#d6ff72','#a882ff'][i],1.8,16,0.25,0.6,1.3);beam.position.set(40+(i-1.5)*3,6.5,2);beam.target.position.set(40+(i-1.5)*2,0,-2);scene.add(beam,beam.target);animatedDecor.push({type:'barBeam',light:beam,phase:i*1.6});}
@@ -414,11 +425,11 @@ function updateNearby() {
   nearest = distance < 4 ? closest : null;
   if (nearest) {
     const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat',door=nearest.userData.gameId==='door';
-    message.textContent = door ? `Nhấn E để tới ${nearest.userData.targetRoom==='bar'?'quán bar':'sảnh'}.` : seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? 'Jukebox phát nhạc chung cho cả ba khu. Nhấn E để chọn nhạc!' : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
+    message.textContent = door ? `Nhấn E để tới ${nearest.userData.targetRoom==='bar'?'quán bar':'sảnh'}.` : seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? (activeRoom==='bar'?'Jukebox này chỉ phát riêng trong quán bar. Nhấn E để chọn nhạc!':'Jukebox phát chung cho hai phòng game. Nhấn E để chọn nhạc!') : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
     interact.lastChild.textContent = door ? ` Đi tới ${nearest.userData.targetRoom==='bar'?'quán bar':'sảnh'}` : seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
     interact.classList.add('can-interact');
   } else {
-    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':'Đi lại gần một máy game để bắt đầu chơi.';
+    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':activeRoom==='bar'?'Đi tới jukebox riêng của bar hoặc ghế để tương tác.':'Đi lại gần một máy game để bắt đầu chơi.';
     interact.lastChild.textContent = ' Chơi ở đây';
     interact.classList.remove('can-interact');
   }
@@ -540,15 +551,11 @@ function animate() {
   }
   updateNearby();
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
-  const activeScreen=activeRoom==='bar'?barScreenGroup:videoScreenGroup;
-  const halfWidth=activeRoom==='bar'?3.225:3.6,halfHeight=activeRoom==='bar'?1.71:2.025;
-  const activeProjection=projectionFrame;
-  const corners=[new THREE.Vector3(-halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,-halfHeight,0.23),new THREE.Vector3(halfWidth,halfHeight,0.23),new THREE.Vector3(-halfWidth,halfHeight,0.23)].map(v=>activeScreen.localToWorld(v).project(camera));
-  const rect=host.getBoundingClientRect(), px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));
-  const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));
-  activeProjection.style.left=`${left}px`;activeProjection.style.top=`${top}px`;activeProjection.style.width=`${right-left}px`;activeProjection.style.height=`${bottom-top}px`;
-  activeProjection.style.display=bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';
-  activeProjection.style.visibility='visible';
+  const rect=host.getBoundingClientRect();
+  const projectScreen=(screen,w,h,frame,enabled)=>{const corners=[new THREE.Vector3(-w,-h,0.23),new THREE.Vector3(w,-h,0.23),new THREE.Vector3(w,h,0.23),new THREE.Vector3(-w,h,0.23)].map(v=>screen.localToWorld(v).project(camera));const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));frame.style.left=`${left}px`;frame.style.top=`${top}px`;frame.style.width=`${right-left}px`;frame.style.height=`${bottom-top}px`;frame.style.display=enabled&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';};
+  const inBar=activeRoom==='bar';
+  projectScreen(videoScreenGroup,3.6,2.025,projectionFrame,!inBar);
+  projectScreen(barScreenGroup,3.225,1.71,barProjectionFrame,inBar);
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
