@@ -10,7 +10,8 @@
   const kicker = document.querySelector('#musicKicker');
   const queueTitle = document.querySelector('#musicQueueTitle');
   const gamePlayer=document.querySelector('#youtubePlayer');
-  const barPlayer=document.querySelector('#youtubeBarPlayer');
+  let barPlayer=document.querySelector('#youtubeBarPlayer');
+  if(!barPlayer){barPlayer=document.createElement('iframe');barPlayer.id='youtubeBarPlayer';barPlayer.title='YouTube music player · Quán bar';barPlayer.allow='autoplay; encrypted-media';barPlayer.referrerPolicy='no-referrer-when-downgrade';barPlayer.hidden=true;document.querySelector('.music-player-wrap')?.append(barPlayer);}
   const players={game:gamePlayer,bar:barPlayer};
   const queueStorageKey=room=>`choigi-youtube-queue-v2-${room}`;
   let currentRoom = 'lounge';
@@ -126,7 +127,7 @@
     title.textContent = currentRoom === 'bar' ? 'Máy phát nhạc quán bar' : 'Máy phát nhạc phòng game';
     kicker.textContent = currentRoom === 'bar' ? 'JUKEBOX · QUÁN BAR RIÊNG' : 'JUKEBOX · HAI PHÒNG GAME';
     queueTitle.textContent = currentRoom === 'bar' ? 'Danh sách nhạc quán bar' : 'Danh sách nhạc chung hai phòng game';
-    document.querySelector('#musicNote').textContent = currentRoom === 'bar' ? 'Nhạc và video của quán bar độc lập với hai phòng game.' : 'Hai phòng game dùng chung danh sách và màn hình.';
+    const note=document.querySelector('#musicNote');if(note)note.textContent = currentRoom === 'bar' ? 'Nhạc và video của quán bar độc lập với hai phòng game.' : 'Hai phòng game dùng chung danh sách và màn hình.';
     externalLink.hidden = !getPlayer()?.src;
     updatePlayerNote(); render(); overlay.hidden = false; urlField.focus();
   };

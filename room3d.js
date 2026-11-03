@@ -188,7 +188,9 @@ roundedPanel(barScreenGroup,10.0,5.38,0.08,mat('#ad4b91',0.25,{metalness:0.3,emi
 const barVideoSurface=box(barScreenGroup,9.55,5.02,0.04,mat('#100b17',0.24,{emissive:'#301338',emissiveIntensity:0.8}),0,0,0.25,false);
 const barProjectionFrame=document.createElement('div');barProjectionFrame.className='room-projection room-projection-bar';barProjectionFrame.setAttribute('aria-label','Video riêng của quán bar');
 const barProjectionHint=document.createElement('div');barProjectionHint.className='projection-hint';barProjectionHint.innerHTML='<span>♫</span><b>BAR SCREEN</b><small>Thêm nhạc tại jukebox của quán bar</small>';barProjectionFrame.append(barProjectionHint);
-const barMusicPlayer=document.querySelector('#youtubeBarPlayer');barProjectionFrame.append(barMusicPlayer);host.append(barProjectionFrame);
+let barMusicPlayer=document.querySelector('#youtubeBarPlayer');
+if(!barMusicPlayer){barMusicPlayer=document.createElement('iframe');barMusicPlayer.id='youtubeBarPlayer';barMusicPlayer.title='YouTube music player · Quán bar';barMusicPlayer.allow='autoplay; encrypted-media';barMusicPlayer.referrerPolicy='no-referrer-when-downgrade';barMusicPlayer.hidden=true;document.querySelector('.music-player-wrap')?.append(barMusicPlayer);}
+barProjectionFrame.append(barMusicPlayer);host.append(barProjectionFrame);
 const barProjectionShield=document.createElement('div');barProjectionShield.className='projection-shield';barProjectionShield.setAttribute('aria-label','Màn hình chỉ để xem video');barProjectionFrame.append(barProjectionShield);
 Object.assign(barProjectionFrame.style,{pointerEvents:'auto'});barMusicPlayer.style.pointerEvents='none';barMusicPlayer.tabIndex=-1;Object.assign(barProjectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const counter=new THREE.Group();counter.position.set(40,0,-1.1);scene.add(counter);
