@@ -1,7 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 import { getDatabase, ref, get, set, update, remove, push, query, orderByChild, startAt, endAt, limitToFirst, limitToLast, onValue, onDisconnect, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js';
-import { firebaseConfig, firebaseReady } from './firebase-config.js?v=20261104-online1';
+import { firebaseConfig, firebaseReady } from './firebase-config.js?v=20261104-online2';
 
 const $ = selector => document.querySelector(selector);
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
