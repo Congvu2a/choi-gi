@@ -5,6 +5,7 @@ const message = document.querySelector('#roomMessage');
 const interact = document.querySelector('#interactBtn');
 const modal = document.querySelector('#gameModal');
 const musicOverlay = document.querySelector('#musicOverlay');
+const socialOverlay = document.querySelector('#socialOverlay');
 if (!host) throw new Error('Không tìm thấy khu vực phòng game.');
 
 const scene = new THREE.Scene();
@@ -381,6 +382,26 @@ for (const sx of [-0.17, 0.17]) {
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.62, 24), new THREE.MeshBasicMaterial({ color: '#100d19', transparent: true, opacity: 0.34 })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.012; player.add(shadow);
 const playerLight = new THREE.PointLight('#bca2ff', 0.55, 3.5); playerLight.position.set(0, 2.1, 0); player.add(playerLight);
 
+// Other signed-in visitors appear as small live avatars in the same shared game world.
+const remotePlayers=new Map();
+window.addEventListener('choigi-online-players',event=>{
+  const players=event.detail?.players||{},known=new Set();
+  for(const [uid,data] of Object.entries(players)){
+    if(uid===window.choigiOnlineUserId)continue;
+    known.add(uid);let avatar=remotePlayers.get(uid);
+    if(!avatar){
+      avatar=new THREE.Group();
+      const shirt=new THREE.Mesh(new THREE.CapsuleGeometry(0.34,0.48,4,8),mat('#57b7cf',0.58));shirt.position.y=1.02;shirt.castShadow=true;avatar.add(shirt);
+      const face=new THREE.Mesh(new THREE.SphereGeometry(0.34,12,10),mat('#ffd0ae'));face.position.y=1.78;face.castShadow=true;avatar.add(face);
+      const hairCap=new THREE.Mesh(new THREE.SphereGeometry(0.35,12,8,0,Math.PI*2,0,Math.PI*.52),mat('#49304f'));hairCap.position.y=1.9;avatar.add(hairCap);
+      const nameTag=addLabel(avatar,String(data.displayName||data.username||'Bạn').slice(0,16),'#d6ff72');nameTag.position.y=2.45;nameTag.scale.set(2.5,0.62,1);
+      scene.add(avatar);remotePlayers.set(uid,avatar);
+    }
+    avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);
+  }
+  for(const [uid,avatar] of remotePlayers)if(!known.has(uid)){scene.remove(avatar);remotePlayers.delete(uid);}
+});
+
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const keys = new Set();
@@ -485,7 +506,7 @@ document.querySelector('#shareRoomBtn')?.addEventListener('click', () => {
   else navigator.clipboard?.writeText(location.href).then(() => window.showToast('Đã sao chép link phòng!'));
 });
 document.addEventListener('keydown', e => {
-  if (modal.classList.contains('open') || !musicOverlay.hidden) return;
+  if (modal.classList.contains('open') || !musicOverlay.hidden || (socialOverlay && !socialOverlay.hidden)) return;
   const k = e.key.toLowerCase();
   if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter'].includes(k)) e.preventDefault();
   if (k === 'e' || k === 'enter') tryInteract(); else keys.add(k);
@@ -498,6 +519,7 @@ document.querySelectorAll('[data-move]').forEach(btn => {
 });
 
 const clock = new THREE.Clock();
+let lastPositionPublish=0;
 function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);
   let dx = 0, dz = 0;
@@ -506,7 +528,7 @@ function animate() {
   if (keys.has('arrowup') || keys.has('w')) dz -= 1;
   if (keys.has('arrowdown') || keys.has('s')) dz += 1;
   const inputActive=dx!==0||dz!==0;
-  const canMove=!modal.classList.contains('open')&&musicOverlay.hidden;
+  const canMove=!modal.classList.contains('open')&&musicOverlay.hidden&&(!socialOverlay||socialOverlay.hidden);
   if(canMove&&inputActive){
     if(seated){seated=false;player.scale.y=1;}
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
@@ -553,6 +575,7 @@ function animate() {
     if (screen) screen.material.emissiveIntensity = 0.7 + Math.sin(t * 2.2 + station.position.x) * 0.16;
   }
   updateNearby();
+  if(performance.now()-lastPositionPublish>300){lastPositionPublish=performance.now();window.dispatchEvent(new CustomEvent('choigi-player-position',{detail:{x:player.position.x,z:player.position.z}}));}
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,enabled)=>{const corners=[new THREE.Vector3(-w,-h,0.23),new THREE.Vector3(w,-h,0.23),new THREE.Vector3(w,h,0.23),new THREE.Vector3(-w,h,0.23)].map(v=>screen.localToWorld(v).project(camera));const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));frame.style.left=`${left}px`;frame.style.top=`${top}px`;frame.style.width=`${right-left}px`;frame.style.height=`${bottom-top}px`;frame.style.display=enabled&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';};
