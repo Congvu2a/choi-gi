@@ -205,21 +205,30 @@ $('#chatForm').addEventListener('submit', async event => {
 });
 
 function worldKey(room) { return room === 'bar' ? 'bar' : 'game'; }
+function reportMusicSyncError(error, action) {
+  const message = showError(error);
+  status.textContent = `Lỗi ${action} video chung: ${message}`;
+  window.showToast(`Chưa đồng bộ được video (${action}). Mở tài khoản để xem lỗi Firebase.`);
+  console.error(`[ChoiGi] ${action} shared music failed`, error);
+}
 function watchSharedMusic() {
   stopMusicListeners.forEach(stop => stop());
   stopMusicListeners = ['game', 'bar'].map(world => onValue(ref(db, `rooms/${world}/music`), snapshot => {
     window.dispatchEvent(new CustomEvent('choigi-shared-music-state', {
       detail: { room: world === 'bar' ? 'bar' : 'game', state: snapshot.val(), localUid: user?.uid || null }
     }));
-  }, error => { if (user) status.textContent = showError(error); }));
+  }, error => { if (user) reportMusicSyncError(error, 'đọc'); }));
 }
 window.addEventListener('choigi-music-state-write', event => {
-  if (!db || !user) return;
+  if (!db || !user) {
+    window.showToast('Bạn cần đăng nhập để mọi người cùng xem video trên màn hình.');
+    return;
+  }
   const room = event.detail?.room === 'bar' ? 'bar' : 'game';
   const item = event.detail?.item || null;
   set(ref(db, `rooms/${room}/music`), {
     playing: Boolean(item), item, startedAt: Number(event.detail?.startedAt) || Date.now(), updatedAt: Date.now(), updatedBy: user.uid
-  }).catch(error => window.showToast(showError(error)));
+  }).catch(error => reportMusicSyncError(error, 'ghi'));
 });
 async function updatePresence() {
   if (!user || !profile || !db) return;
