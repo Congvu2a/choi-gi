@@ -9,3 +9,4 @@
 .quick-volume-popover[hidden]{display:none}.quick-volume-popover label{font:600 10px 'DM Sans',sans-serif;white-space:nowrap}.quick-volume-popover input{width:100%;height:4px;accent-color:#d6ff72;cursor:pointer}.quick-volume-popover output{min-width:31px;color:#d6ff9c;font:700 10px 'DM Sans',sans-serif;text-align:right}
 @media(max-width:700px){.quick-controls{right:9px;bottom:9px;height:46px}.quick-control,.quick-volume-value{height:34px;min-width:31px}.quick-music{width:34px;height:34px}.quick-volume-popover{bottom:54px}}
 #quickScreenBtn.is-active{background:#293325;color:#d6ff72}
+#quickScreenBtn svg{width:20px;height:20px}
