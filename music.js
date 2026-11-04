@@ -77,25 +77,48 @@
 
   function getPlayer() { return players[currentRoom === 'bar' ? 'bar' : 'game']; }
 
-  function play(item) {
-    const player = getPlayer();
+  function playOnRoom(room, item, broadcast = false) {
+    const world = room === 'bar' ? 'bar' : 'game';
+    const player = players[world];
     if (!player) return;
+    if (!item) {
+      player.src = ''; player.hidden = true; delete player.dataset.trackKey;
+      if (world === currentRoom) { externalLink.hidden = true; updatePlayerNote(); }
+      window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: false, room: world } }));
+      return;
+    }
     const base = item.type === 'playlist'
       ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(item.id)}`
       : `https://www.youtube.com/embed/${encodeURIComponent(item.id)}`;
+    const trackKey = `${item.type}:${item.id}`;
+    if (player.dataset.trackKey === trackKey) return;
+    player.dataset.trackKey = trackKey;
     const target = new URL(base);
     const params = new URLSearchParams({ autoplay: '1', playsinline: '1', rel: '0', enablejsapi: '1', origin: location.origin, controls: '0', disablekb: '1', fs: '0' });
     params.forEach((value, key) => target.searchParams.set(key, value));
     player.referrerPolicy = 'no-referrer-when-downgrade';
     player.src = target.toString();
     player.hidden = false;
-    updatePlayerNote();
-    window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: true, room: currentRoom === 'bar' ? 'bar' : 'game', item } }));
-    externalLink.href = item.type === 'playlist'
-      ? `https://www.youtube.com/playlist?list=${encodeURIComponent(item.id)}`
-      : `https://www.youtube.com/watch?v=${encodeURIComponent(item.id)}`;
-    externalLink.hidden = false;
+    if (world === currentRoom) {
+      updatePlayerNote();
+      externalLink.href = item.type === 'playlist'
+        ? `https://www.youtube.com/playlist?list=${encodeURIComponent(item.id)}`
+        : `https://www.youtube.com/watch?v=${encodeURIComponent(item.id)}`;
+      externalLink.hidden = false;
+    }
+    window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: true, room: world, item } }));
+    if (broadcast) window.dispatchEvent(new CustomEvent('choigi-music-state-write', { detail: { room: world, item } }));
   }
+
+  function play(item) { playOnRoom(currentRoom, item, true); }
+
+  window.addEventListener('choigi-shared-music-state', event => {
+    const room = event.detail?.room === 'bar' ? 'bar' : 'game';
+    const state = event.detail?.state;
+    // Local playback already updated this frame; avoid restarting it when its database echo arrives.
+    if (state?.updatedBy && state.updatedBy === event.detail?.localUid) return;
+    playOnRoom(room, state?.playing ? state.item : null, false);
+  });
 
   function render() {
     queueEl.replaceChildren();
@@ -146,9 +169,7 @@
 
   document.querySelector('#clearMusicQueue').addEventListener('click', () => {
     queue = []; save(); render();
-    const player = getPlayer(); player.src = ''; player.hidden = true;
-    externalLink.hidden = true; updatePlayerNote();
-    window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: false, room: currentRoom } }));
+    playOnRoom(currentRoom, null, true);
   });
 
   window.addEventListener('choigi-room-changed', e => {

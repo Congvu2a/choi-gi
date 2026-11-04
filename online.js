@@ -14,6 +14,7 @@ const status = $('#onlineStatus');
 let auth = null, db = null, user = null, profile = null, profileSetupPromise = null;
 let authMode = 'login', currentRoom = 'lounge', lastPosition = { x: 0, z: 3.45 };
 let stopRoomListener = null, stopFriendListener = null, stopRequestListener = null, stopChatListener = null;
+let stopMusicListeners = [];
 let presenceRef = null, presenceWorld = null, positionWriteAt = 0;
 
 function showError(error) {
@@ -54,8 +55,9 @@ function showProfile() {
 }
 
 function stopListeners() {
-  [stopRoomListener, stopFriendListener, stopRequestListener, stopChatListener].forEach(stop => stop?.());
+  [stopRoomListener, stopFriendListener, stopRequestListener, stopChatListener, ...stopMusicListeners].forEach(stop => stop?.());
   stopRoomListener = stopFriendListener = stopRequestListener = stopChatListener = null;
+  stopMusicListeners = [];
 }
 
 async function reserveAndCreateProfile(uid, username, displayName) {
@@ -203,6 +205,22 @@ $('#chatForm').addEventListener('submit', async event => {
 });
 
 function worldKey(room) { return room === 'bar' ? 'bar' : 'game'; }
+function watchSharedMusic() {
+  stopMusicListeners.forEach(stop => stop());
+  stopMusicListeners = ['game', 'bar'].map(world => onValue(ref(db, `rooms/${world}/music`), snapshot => {
+    window.dispatchEvent(new CustomEvent('choigi-shared-music-state', {
+      detail: { room: world === 'bar' ? 'bar' : 'game', state: snapshot.val(), localUid: user?.uid || null }
+    }));
+  }, error => { if (user) status.textContent = showError(error); }));
+}
+window.addEventListener('choigi-music-state-write', event => {
+  if (!db || !user) return;
+  const room = event.detail?.room === 'bar' ? 'bar' : 'game';
+  const item = event.detail?.item || null;
+  set(ref(db, `rooms/${room}/music`), {
+    playing: Boolean(item), item, updatedAt: Date.now(), updatedBy: user.uid
+  }).catch(error => window.showToast(showError(error)));
+});
 async function updatePresence() {
   if (!user || !profile || !db) return;
   const key = worldKey(currentRoom);
@@ -334,6 +352,7 @@ if (!firebaseReady) {
       }
       status.textContent = 'Đã đăng nhập · sảnh đang kết nối.';
       showProfile(); watchSocialData();
+      watchSharedMusic();
       stopChatListener = onValue(query(ref(db, 'lobbyChat'), limitToLast(60)), renderMessages);
       await updatePresence();
     });
