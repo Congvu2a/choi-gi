@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="immersive.css" />
   <link rel="stylesheet" href="music.css" />
   <link rel="stylesheet" href="social.css?v=20261104-online1" />
-  <link rel="stylesheet" href="quick-controls.css?v=20261104-1" />
+  <link rel="stylesheet" href="quick-controls.css?v=20261104-2" />
   <style>
     .room-projection{pointer-events:auto!important}.room-projection iframe{pointer-events:none!important}.projection-shield{position:absolute;inset:0;z-index:5;background:transparent;pointer-events:auto;touch-action:none;cursor:default}.projection-hint{pointer-events:none!important}
     .shooter-canvas{display:block;width:min(100%,520px);height:auto;border:1px solid #ffffff22;border-radius:12px;background:#111323;touch-action:none}.shooter-controls,.merge-controls{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:10px}.shooter-controls button,.merge-controls button{min-width:48px;height:40px;border:1px solid #ffffff20;border-radius:9px;background:#292735;color:#f5f0ff;font-weight:800}.shooter-controls [data-fire]{min-width:100px;background:#d6ff72;color:#1b2014}.merge-board{display:grid;grid-template-columns:repeat(4,minmax(42px,58px));gap:6px;padding:7px;background:#383044;border-radius:12px}.merge-cell{height:53px;border-radius:8px;display:grid;place-items:center;background:#201d29;color:#fff;font:700 20px 'Space Grotesk'}.merge-cell[data-value="2"]{background:#8c7b91}.merge-cell[data-value="4"]{background:#b08481}.merge-cell[data-value="8"]{background:#e99a65}.merge-cell[data-value="16"],.merge-cell[data-value="32"]{background:#e7795f}.merge-cell[data-value="64"],.merge-cell[data-value="128"],.merge-cell[data-value="256"],.merge-cell[data-value="512"],.merge-cell[data-value="1024"],.merge-cell[data-value="2048"]{background:#c2da68;color:#242719}.merge-score{margin:0 0 8px;color:#d6ff72;font-weight:700}.merge-controls{flex-direction:column}.merge-controls>div{display:flex;gap:8px}.mine-board{display:grid;grid-template-columns:repeat(6,40px);gap:5px;margin-top:10px}.mine-cell{width:40px;height:40px;border:1px solid #ffffff18;border-radius:7px;background:#302b3b;color:#fff;font-weight:800}.mine-cell.opened{background:#1a1921;color:#d6ff72}.mine-cell.flagged{color:#ffad77}.mine-cell.mine-hit{background:#9d3f59}.mine-cell[data-near="1"]{color:#7bdcff}.mine-cell[data-near="2"]{color:#d6ff72}.mine-cell[data-near="3"]{color:#ff8aab}
@@ -92,7 +92,7 @@
   <div class="toast" id="toast" role="status"></div>
   <div class="quick-controls" id="quickControls" aria-label="Điều khiển nhanh">
     <button class="quick-control quick-music" id="quickMusicBtn" type="button" aria-label="Mở máy phát nhạc" title="Máy phát nhạc"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.6"/><path d="M12 3.5v5.9M20.5 12h-5.9M12 20.5v-5.9M3.5 12h5.9"/></svg></button>
-    <button class="quick-control" id="quickScreenBtn" type="button" aria-label="Bật toàn màn hình" title="Toàn màn hình"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3H4a1 1 0 0 0-1 1v5M3 3l6 6M15 3h5a1 1 0 0 1 1 1v5m0-6-6 6M3 15v5a1 1 0 0 0 1 1h5m-6 0 6-6m6 6h5a1 1 0 0 0 1-1v-5m0 6-6-6"/></svg></button>
+    <button class="quick-control" id="quickCaptionsBtn" type="button" aria-label="Bật phụ đề" title="Bật phụ đề"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.4"/><path d="M7 10.2h4.2M7 13.8h2.5m3.3-3.6H17m-4.2 3.6H17"/><path d="m18.2 14.2 1.3 1.2 1.5-1.6" class="caption-check"/></svg></button>
     <button class="quick-control" id="quickMuteBtn" type="button" aria-label="Tắt tiếng" title="Tắt tiếng"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="speaker-body" d="M4 10v4h4l5 4V6l-5 4H4z"/><path class="speaker-wave" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="speaker-muted" d="m16 9 5 6m0-6-5 6"/></svg></button>
     <button class="quick-volume-value" id="quickVolumeToggle" type="button" aria-label="Điều chỉnh âm lượng" title="Điều chỉnh âm lượng"><span id="quickVolumeText">14%</span></button>
     <div class="quick-volume-popover" id="quickVolumePopover" hidden><label for="quickVolumeRange">Âm lượng</label><input id="quickVolumeRange" type="range" min="0" max="100" value="14"><output id="quickVolumeOutput">14%</output></div>
@@ -118,7 +118,7 @@
   </div>
   <script src="script.js?v=20261104-online1"></script>
   <script src="music.js?v=20261104-sync2"></script>
-  <script src="quick-controls.js?v=20261104-1"></script>
+  <script src="quick-controls.js?v=20261104-2"></script>
   <script type="module" src="room3d.js?v=20261104-online1"></script>
   <script type="module" src="online.js?v=20261104-sync3"></script>
 </body>

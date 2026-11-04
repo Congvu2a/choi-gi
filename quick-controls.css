@@ -10,3 +10,7 @@
 @media(max-width:700px){.quick-controls{right:9px;bottom:9px;height:46px}.quick-control,.quick-volume-value{height:34px;min-width:31px}.quick-music{width:34px;height:34px}.quick-volume-popover{bottom:54px}}
 #quickScreenBtn.is-active{background:#293325;color:#d6ff72}
 #quickScreenBtn svg{width:20px;height:20px}
+#quickCaptionsBtn{width:34px}
+#quickCaptionsBtn.is-active{background:#293325;color:#d6ff72}
+#quickCaptionsBtn .caption-check{opacity:0;transition:opacity .16s}
+#quickCaptionsBtn.is-active .caption-check{opacity:1}
