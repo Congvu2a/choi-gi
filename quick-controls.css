@@ -1,0 +1,11 @@
+.quick-controls{position:fixed;right:14px;bottom:14px;z-index:15;display:flex;align-items:center;gap:4px;height:50px;padding:5px;border:1px solid #b7de6c24;border-radius:13px;background:#111510eF;box-shadow:0 8px 28px #0008,inset 0 1px #ffffff0a;backdrop-filter:blur(12px);color:#e8f0dd}
+.quick-control,.quick-volume-value{display:grid;place-items:center;flex:none;height:38px;min-width:34px;padding:0 7px;border:0;border-radius:8px;background:transparent;color:#d5dbcd;cursor:pointer;transition:background .16s,color .16s,transform .16s}
+.quick-control:hover,.quick-volume-value:hover{background:#ffffff12;color:#fff}.quick-control:active,.quick-volume-value:active{transform:scale(.94)}
+.quick-control svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.quick-music{width:38px;height:38px;background:#222a1d;color:#d6ff72}.quick-music svg{width:19px;height:19px}.quick-music:hover{background:#303d22;color:#e4ff9c}
+.quick-mute-button .speaker-muted{display:none}.quick-controls.is-muted .speaker-wave{display:none}.quick-controls.is-muted .speaker-muted{display:block;color:#e9cc8e}
+.quick-volume-value{min-width:39px;padding:0 7px;color:#d6ff9c;font:700 11px 'DM Sans',sans-serif;font-variant-numeric:tabular-nums}
+.quick-volume-popover{position:absolute;right:0;bottom:59px;display:flex;align-items:center;gap:9px;width:220px;padding:11px 12px;border:1px solid #ffffff1a;border-radius:12px;background:#171a16f5;box-shadow:0 10px 30px #0009;color:#ebece5}
+.quick-volume-popover[hidden]{display:none}.quick-volume-popover label{font:600 10px 'DM Sans',sans-serif;white-space:nowrap}.quick-volume-popover input{width:100%;height:4px;accent-color:#d6ff72;cursor:pointer}.quick-volume-popover output{min-width:31px;color:#d6ff9c;font:700 10px 'DM Sans',sans-serif;text-align:right}
+@media(max-width:700px){.quick-controls{right:9px;bottom:9px;height:46px}.quick-control,.quick-volume-value{height:34px;min-width:31px}.quick-music{width:34px;height:34px}.quick-volume-popover{bottom:54px}}
+#quickScreenBtn.is-active{background:#293325;color:#d6ff72}
