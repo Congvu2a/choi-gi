@@ -12,6 +12,8 @@ const signedInSection = $('#signedInSection');
 const authForm = $('#authForm');
 const authError = $('#authError');
 const status = $('#onlineStatus');
+const roomChatPanel = $('#roomChatPanel');
+const roomChatToggle = $('#roomChatToggle');
 let auth = null, db = null, user = null, profile = null, profileSetupPromise = null;
 window.choigiOnlineReady = false;
 window.choigiOnlineUserId = null;
@@ -277,17 +279,28 @@ document.querySelectorAll('[data-social-close]').forEach(button => button.addEve
 overlay.addEventListener('click', event => { if (event.target === overlay && window.choigiOnlineReady) overlay.hidden = true; });
 document.querySelectorAll('[data-drawer-close]').forEach(button => button.addEventListener('click', () => { if (window.choigiOnlineReady) drawer.hidden = true; }));
 drawer.addEventListener('click', event => { if (event.target === drawer && window.choigiOnlineReady) drawer.hidden = true; });
+roomChatToggle.addEventListener('click', () => {
+  if (!window.choigiOnlineReady) { overlay.hidden = false; return; }
+  roomChatPanel.hidden = !roomChatPanel.hidden;
+  roomChatToggle.setAttribute('aria-expanded', String(!roomChatPanel.hidden));
+  roomChatToggle.setAttribute('aria-label', roomChatPanel.hidden ? 'Mở chat phòng' : 'Đóng chat phòng');
+  if (!roomChatPanel.hidden) $('#chatInput').focus();
+});
+document.querySelectorAll('[data-room-chat-close]').forEach(button => button.addEventListener('click', () => {
+  roomChatPanel.hidden = true;
+  roomChatToggle.setAttribute('aria-expanded', 'false');
+  roomChatToggle.setAttribute('aria-label', 'Mở chat phòng');
+}));
 document.addEventListener('keydown', event => {
   if (event.key !== 'Escape' || !window.choigiOnlineReady) return;
-  if (!drawer.hidden) drawer.hidden = true;
+  if (!roomChatPanel.hidden) {
+    roomChatPanel.hidden = true;
+    roomChatToggle.setAttribute('aria-expanded', 'false');
+    roomChatToggle.setAttribute('aria-label', 'Mở chat phòng');
+  } else if (!drawer.hidden) drawer.hidden = true;
   else if (!overlay.hidden) overlay.hidden = true;
 });
 document.querySelectorAll('[data-auth-mode]').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
-document.querySelectorAll('[data-social-tab]').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('[data-social-tab]').forEach(tab => tab.classList.toggle('active', tab === button));
-  $('#friendsPane').hidden = button.dataset.socialTab !== 'friends'; $('#chatPane').hidden = button.dataset.socialTab !== 'chat';
-}));
-
 let stopQueueMatch = null, stopActiveMatch = null, activeQueueRef = null, matchmakingBusy = false;
 const matchWins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 function currentMatchMoves(snapshot){const data=snapshot.val()?.rounds||{};return Object.keys(data).sort((a,b)=>Number(a)-Number(b)).flatMap(turn=>Object.entries(data[turn]?.moves||{}).map(([uid,move])=>({turn:Number(turn),uid,move})));}

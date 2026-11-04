@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="room3d.css" />
   <link rel="stylesheet" href="immersive.css" />
   <link rel="stylesheet" href="music.css" />
-  <link rel="stylesheet" href="social.css?v=20261104-login2" />
+  <link rel="stylesheet" href="social.css?v=20261104-chat1" />
   <link rel="stylesheet" href="quick-controls.css?v=20261104-2" />
   <style>
     .room-projection{pointer-events:auto!important}.room-projection iframe{pointer-events:none!important}.projection-shield{position:absolute;inset:0;z-index:5;background:transparent;pointer-events:auto;touch-action:none;cursor:default}.projection-hint{pointer-events:none!important}
@@ -112,20 +112,29 @@
   <aside class="social-drawer" id="socialDrawer" hidden>
     <button class="social-drawer-backdrop" data-drawer-close aria-label="Đóng bảng bạn bè"></button>
     <section class="social-drawer-panel" aria-labelledby="socialDrawerTitle">
-      <header class="social-header"><div><span class="music-kicker">CHƠI GÌ? · ONLINE</span><h2 id="socialDrawerTitle">Bạn bè & chat</h2></div><button class="music-close" data-drawer-close aria-label="Đóng">×</button></header>
+      <header class="social-header"><div><span class="music-kicker">CHƠI GÌ? · ONLINE</span><h2 id="socialDrawerTitle">Bạn bè</h2></div><button class="music-close" data-drawer-close aria-label="Đóng">×</button></header>
       <div id="signedInSection" hidden><div class="signed-in-card"><span class="online-avatar" id="socialAvatar">✦</span><div><b id="socialName">Người chơi</b><small id="socialHandle">@player</small></div><button type="button" id="signOutBtn" class="social-quiet">Thoát</button></div>
         <form id="nameForm" class="inline-edit"><label for="displayNameEdit">Tên nhân vật</label><div><input id="displayNameEdit" maxlength="20" required><button class="social-quiet" type="submit">Lưu</button></div></form>
-        <div class="social-tabs"><button class="active" data-social-tab="friends">Bạn bè</button><button data-social-tab="chat">Chat phòng</button></div>
         <section id="friendsPane" class="social-pane"><form id="friendSearchForm" class="friend-search"><input id="friendSearch" maxlength="20" placeholder="Tìm theo @tên tài khoản"><button class="social-primary" type="submit">Tìm</button></form>
           <div id="friendSearchResults" class="social-list"></div><h3>Lời mời kết bạn</h3><div id="friendRequests" class="social-list"></div><h3>Bạn bè</h3><div id="friendList" class="social-list"></div></section>
-        <section id="chatPane" class="social-pane" hidden><div class="chat-room-note">Chat chung · nhớ giữ lịch sự nhé</div><div id="chatMessages" class="chat-messages" aria-live="polite"></div><form id="chatForm" class="chat-form"><input id="chatInput" maxlength="300" placeholder="Viết tin nhắn…" autocomplete="off" required><button class="social-primary" type="submit">Gửi</button></form></section>
       </div>
+    </section>
+  </aside>
+  <aside class="room-chat-widget" id="roomChatWidget" aria-label="Chat phòng">
+    <button class="room-chat-launcher" id="roomChatToggle" type="button" aria-expanded="false" aria-controls="roomChatPanel" aria-label="Mở chat phòng" title="Chat phòng">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 3v-14Z"/><path d="M8 10h8M8 13.5h5"/></svg><span>Chat phòng</span>
+    </button>
+    <section class="room-chat-panel" id="roomChatPanel" aria-labelledby="roomChatTitle" hidden>
+      <header class="room-chat-header"><div><span class="music-kicker">CHƠI GÌ? · TRÒ CHUYỆN</span><h2 id="roomChatTitle">Chat phòng</h2></div><button class="music-close" type="button" data-room-chat-close aria-label="Đóng chat">×</button></header>
+      <div class="chat-room-note">Tin nhắn chung cho mọi người đang online</div>
+      <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+      <form id="chatForm" class="chat-form"><input id="chatInput" maxlength="300" placeholder="Viết tin nhắn…" autocomplete="off" required><button class="social-primary" type="submit">Gửi</button></form>
     </section>
   </aside>
   <script src="script.js?v=20261104-online1"></script>
   <script src="music.js?v=20261104-sync2"></script>
   <script src="quick-controls.js?v=20261104-2"></script>
   <script type="module" src="room3d.js?v=20261104-login2"></script>
-  <script type="module" src="online.js?v=20261104-login2"></script>
+  <script type="module" src="online.js?v=20261104-chat1"></script>
 </body>
 </html>
