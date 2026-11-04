@@ -1,0 +1,106 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "usernames": {
+      ".read": "auth != null",
+      "$handle": {
+        ".write": "auth != null && ((newData.exists() && newData.val() === auth.uid) || (!newData.exists() && data.val() === auth.uid))",
+        ".validate": "$handle.matches(/^[a-z0-9_]{3,20}$/)"
+      }
+    },
+    "profiles": {
+      ".read": "auth != null",
+      ".indexOn": ["usernameLower"],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['username','usernameLower','displayName'])",
+        "username": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]{3,20}$/) && root.child('usernames').child(newData.val()).val() === $uid" },
+        "usernameLower": { ".validate": "newData.isString() && newData.val() === newData.parent().child('username').val()" },
+        "displayName": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    },
+    "friendRequests": {
+      "$toUid": {
+        ".read": "auth != null && (auth.uid === $toUid || data.child(auth.uid).exists())",
+        "$fromUid": {
+          ".write": "auth != null && $toUid !== $fromUid && ((auth.uid === $fromUid && ((!newData.exists()) || newData.child('status').val() === 'pending')) || (auth.uid === $toUid && data.child('status').val() === 'pending' && newData.child('status').val() === 'accepted'))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['fromUid','fromName','status','createdAt']) && newData.child('fromUid').val() === $fromUid && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'accepted'))"
+        }
+      }
+    },
+    "friends": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$friendUid": {
+          ".write": "auth != null && (($uid === auth.uid) || (auth.uid === $friendUid && root.child('friendRequests').child(auth.uid).child($uid).child('status').val() === 'pending'))",
+          ".validate": "!newData.exists() || newData.val() === true"
+        }
+      }
+    },
+    "lobbyChat": {
+      ".read": "auth != null",
+      "$messageId": {
+        ".write": "auth != null && newData.child('uid').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('username').val() === root.child('profiles').child(auth.uid).child('username').val()",
+        ".validate": "newData.hasChildren(['uid','username','displayName','text','createdAt'])"
+      }
+    },
+    "rooms": {
+      "$world": {
+        "players": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.hasChildren(['uid','username','displayName','room','x','z','updatedAt']) && newData.child('uid').val() === auth.uid && newData.child('x').isNumber() && newData.child('z').isNumber() && newData.child('displayName').isString()"
+          }
+        },
+        "music": {
+          ".read": "auth != null",
+          ".write": "auth != null && newData.child('updatedBy').val() === auth.uid",
+          ".validate": "newData.hasChildren(['playing','updatedAt','updatedBy']) && (!newData.child('playing').val() || newData.hasChild('item'))",
+          "playing": { ".validate": "newData.isBoolean()" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
+          "updatedBy": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+          "item": {
+            ".validate": "newData.hasChildren(['type','id','name']) && ((newData.child('type').val() === 'video' && newData.child('id').isString() && newData.child('id').val().matches(/^[A-Za-z0-9_-]{11}$/)) || (newData.child('type').val() === 'playlist' && newData.child('id').isString() && newData.child('id').val().matches(/^[A-Za-z0-9_-]{10,80}$/)))",
+            "type": { ".validate": "newData.val() === 'video' || newData.val() === 'playlist'" },
+            "id": { ".validate": "newData.isString()" },
+            "name": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "$other": { ".validate": false }
+          },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+    "matchmaking": {
+      "$game": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "!newData.exists() || (newData.hasChildren(['uid','username','displayName','session','createdAt']) && newData.child('uid').val() === auth.uid)"
+        }
+      }
+    },
+    "matches": {
+      "$game": {
+        "$matchId": {
+          ".read": "auth != null",
+          ".write": "auth != null && !data.exists() && newData.child('players').child(auth.uid).exists()",
+          "players": { ".write": false },
+          "rounds": {
+            "$round": {
+              "moves": {
+                "$uid": {
+                  ".write": "auth != null && auth.uid === $uid && root.child('matches').child($game).child($matchId).child('players').child(auth.uid).exists() && !data.exists()",
+                  ".validate": "newData.isString() && (newData.val() === 'rock' || newData.val() === 'paper' || newData.val() === 'scissors' || newData.val() === '0' || newData.val() === '1' || newData.val() === '2' || newData.val() === '3' || newData.val() === '4' || newData.val() === '5' || newData.val() === '6' || newData.val() === '7' || newData.val() === '8')"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
