@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
-import { initializeAuth, inMemoryPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+import { initializeAuth, browserLocalPersistence, browserSessionPersistence, setPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 import { getDatabase, ref, get, set, update, remove, push, query, orderByChild, startAt, endAt, limitToFirst, limitToLast, onValue, onDisconnect, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js';
 import { firebaseConfig, firebaseReady } from './firebase-config.js?v=20261104-online2';
 
@@ -90,6 +90,7 @@ authForm.addEventListener('submit', async event => {
   const password = $('#authPassword').value;
   const button = $('#authSubmit'); button.disabled = true; authError.textContent = '';
   try {
+    await setPersistence(auth, document.querySelector('#rememberLogin').checked ? browserLocalPersistence : browserSessionPersistence);
     if (authMode === 'signup') {
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       profileSetupPromise = reserveAndCreateProfile(credential.user.uid, $('#characterTag').value, $('#characterName').value);
@@ -366,7 +367,7 @@ if (!firebaseReady) {
   renderPresenceEmpty();
 } else {
   try {
-    const app = initializeApp(firebaseConfig); auth = initializeAuth(app, { persistence: inMemoryPersistence }); db = getDatabase(app);
+    const app = initializeApp(firebaseConfig); auth = initializeAuth(app, { persistence: browserLocalPersistence }); db = getDatabase(app);
     status.textContent = 'Firebase đã kết nối · đăng nhập để vào sảnh online.';
     onAuthStateChanged(auth, async nextUser => {
       stopListeners(); if(presenceRef)remove(presenceRef).catch(()=>{});presenceRef = null;presenceWorld=null;user = nextUser;profile = null;window.choigiOnlineUserId=user?.uid||null;
