@@ -77,7 +77,7 @@
 
   function getPlayer() { return players[currentRoom === 'bar' ? 'bar' : 'game']; }
 
-  function playOnRoom(room, item, broadcast = false) {
+  function playOnRoom(room, item, broadcast = false, startedAt = Date.now()) {
     const world = room === 'bar' ? 'bar' : 'game';
     const player = players[world];
     if (!player) return;
@@ -90,11 +90,13 @@
     const base = item.type === 'playlist'
       ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(item.id)}`
       : `https://www.youtube.com/embed/${encodeURIComponent(item.id)}`;
-    const trackKey = `${item.type}:${item.id}`;
+    const trackKey = `${item.type}:${item.id}:${Math.floor(Number(startedAt) / 1000)}`;
     if (player.dataset.trackKey === trackKey) return;
     player.dataset.trackKey = trackKey;
     const target = new URL(base);
+    const startSeconds = Math.max(0, Math.floor((Date.now() - Number(startedAt)) / 1000));
     const params = new URLSearchParams({ autoplay: '1', playsinline: '1', rel: '0', enablejsapi: '1', origin: location.origin, controls: '0', disablekb: '1', fs: '0' });
+    if (startSeconds > 0) params.set('start', String(startSeconds));
     params.forEach((value, key) => target.searchParams.set(key, value));
     player.referrerPolicy = 'no-referrer-when-downgrade';
     player.src = target.toString();
@@ -107,7 +109,7 @@
       externalLink.hidden = false;
     }
     window.dispatchEvent(new CustomEvent('choigi-video-active', { detail: { active: true, room: world, item } }));
-    if (broadcast) window.dispatchEvent(new CustomEvent('choigi-music-state-write', { detail: { room: world, item } }));
+    if (broadcast) window.dispatchEvent(new CustomEvent('choigi-music-state-write', { detail: { room: world, item, startedAt: Number(startedAt) } }));
   }
 
   function play(item) { playOnRoom(currentRoom, item, true); }
@@ -117,7 +119,7 @@
     const state = event.detail?.state;
     // Local playback already updated this frame; avoid restarting it when its database echo arrives.
     if (state?.updatedBy && state.updatedBy === event.detail?.localUid) return;
-    playOnRoom(room, state?.playing ? state.item : null, false);
+    playOnRoom(room, state?.playing ? state.item : null, false, state?.startedAt || Date.now());
   });
 
   function render() {

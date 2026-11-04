@@ -59,8 +59,9 @@
         "music": {
           ".read": "auth != null",
           ".write": "auth != null && newData.child('updatedBy').val() === auth.uid",
-          ".validate": "newData.hasChildren(['playing','updatedAt','updatedBy']) && (!newData.child('playing').val() || newData.hasChild('item'))",
+          ".validate": "newData.hasChildren(['playing','startedAt','updatedAt','updatedBy']) && (newData.child('playing').val() === false || newData.hasChild('item'))",
           "playing": { ".validate": "newData.isBoolean()" },
+          "startedAt": { ".validate": "newData.isNumber()" },
           "updatedAt": { ".validate": "newData.isNumber()" },
           "updatedBy": { ".validate": "newData.isString() && newData.val() === auth.uid" },
           "item": {

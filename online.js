@@ -218,7 +218,7 @@ window.addEventListener('choigi-music-state-write', event => {
   const room = event.detail?.room === 'bar' ? 'bar' : 'game';
   const item = event.detail?.item || null;
   set(ref(db, `rooms/${room}/music`), {
-    playing: Boolean(item), item, updatedAt: Date.now(), updatedBy: user.uid
+    playing: Boolean(item), item, startedAt: Number(event.detail?.startedAt) || Date.now(), updatedAt: Date.now(), updatedBy: user.uid
   }).catch(error => window.showToast(showError(error)));
 });
 async function updatePresence() {
