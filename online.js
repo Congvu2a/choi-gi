@@ -1,17 +1,20 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+import { initializeAuth, inMemoryPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
 import { getDatabase, ref, get, set, update, remove, push, query, orderByChild, startAt, endAt, limitToFirst, limitToLast, onValue, onDisconnect, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js';
 import { firebaseConfig, firebaseReady } from './firebase-config.js?v=20261104-online2';
 
 const $ = selector => document.querySelector(selector);
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const overlay = $('#socialOverlay');
+const drawer = $('#socialDrawer');
 const authSection = $('#authSection');
 const signedInSection = $('#signedInSection');
 const authForm = $('#authForm');
 const authError = $('#authError');
 const status = $('#onlineStatus');
 let auth = null, db = null, user = null, profile = null, profileSetupPromise = null;
+window.choigiOnlineReady = false;
+window.choigiOnlineUserId = null;
 let authMode = 'login', currentRoom = 'lounge', lastPosition = { x: 0, z: 3.45 };
 let stopRoomListener = null, stopFriendListener = null, stopRequestListener = null, stopChatListener = null;
 let stopMusicListeners = [];
@@ -266,10 +269,19 @@ function renderPresenceEmpty() {
   window.dispatchEvent(new CustomEvent('choigi-online-players', { detail: { world: worldKey(currentRoom), players: {} } }));
 }
 
-$('#onlineBtn').addEventListener('click', () => { overlay.hidden = false; });
-document.querySelectorAll('[data-social-close]').forEach(button => button.addEventListener('click', () => { overlay.hidden = true; }));
-overlay.addEventListener('click', event => { if (event.target === overlay) overlay.hidden = true; });
-document.addEventListener('keydown', event => { if (event.key === 'Escape' && !overlay.hidden) overlay.hidden = true; });
+$('#onlineBtn').addEventListener('click', () => {
+  if (window.choigiOnlineReady) drawer.hidden = false;
+  else overlay.hidden = false;
+});
+document.querySelectorAll('[data-social-close]').forEach(button => button.addEventListener('click', () => { if (window.choigiOnlineReady) overlay.hidden = true; }));
+overlay.addEventListener('click', event => { if (event.target === overlay && window.choigiOnlineReady) overlay.hidden = true; });
+document.querySelectorAll('[data-drawer-close]').forEach(button => button.addEventListener('click', () => { if (window.choigiOnlineReady) drawer.hidden = true; }));
+drawer.addEventListener('click', event => { if (event.target === drawer && window.choigiOnlineReady) drawer.hidden = true; });
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !window.choigiOnlineReady) return;
+  if (!drawer.hidden) drawer.hidden = true;
+  else if (!overlay.hidden) overlay.hidden = true;
+});
 document.querySelectorAll('[data-auth-mode]').forEach(button => button.addEventListener('click', () => setAuthMode(button.dataset.authMode)));
 document.querySelectorAll('[data-social-tab]').forEach(button => button.addEventListener('click', () => {
   document.querySelectorAll('[data-social-tab]').forEach(tab => tab.classList.toggle('active', tab === button));
@@ -337,18 +349,23 @@ window.choigiCancelMatch=async()=>{stopQueueMatch?.();stopActiveMatch?.();stopQu
 
 if (!firebaseReady) {
   status.textContent = 'Chưa nối Firebase. Cần điền cấu hình để bật tài khoản và chơi online.';
+  overlay.hidden = false;
   renderPresenceEmpty();
 } else {
   try {
-    const app = initializeApp(firebaseConfig); auth = getAuth(app); db = getDatabase(app);
+    const app = initializeApp(firebaseConfig); auth = initializeAuth(app, { persistence: inMemoryPersistence }); db = getDatabase(app);
     status.textContent = 'Firebase đã kết nối · đăng nhập để vào sảnh online.';
     onAuthStateChanged(auth, async nextUser => {
+      const cameFromLoginGate = !overlay.hidden;
       stopListeners(); if(presenceRef)remove(presenceRef).catch(()=>{});presenceRef = null;presenceWorld=null;user = nextUser;profile = null;window.choigiOnlineUserId=user?.uid||null;
       if (!user) {
+        window.choigiOnlineReady = false;
+        drawer.hidden = true;
         status.textContent = 'Đăng nhập để gặp bạn bè, chat và chơi online.';
         $('#onlineBtn').textContent = '☺'; $('#onlineBtn').title = 'Đăng nhập, bạn bè và chat';
-        showProfile(); renderPresenceEmpty(); return;
+        showProfile(); renderPresenceEmpty(); overlay.hidden = false; setAuthMode('login'); return;
       }
+      window.choigiOnlineReady = false;
       if(profileSetupPromise)await profileSetupPromise.catch(()=>{});
       for (let attempt = 0; attempt < 8; attempt++) {
         const snapshot = await get(ref(db, `profiles/${user.uid}`));
@@ -360,10 +377,13 @@ if (!firebaseReady) {
         await signOut(auth); return;
       }
       status.textContent = 'Đã đăng nhập · sảnh đang kết nối.';
+      window.choigiOnlineReady = true;
       showProfile(); watchSocialData();
       watchSharedMusic();
       stopChatListener = onValue(query(ref(db, 'lobbyChat'), limitToLast(60)), renderMessages);
       await updatePresence();
+      overlay.hidden = true;
+      if (cameFromLoginGate) drawer.hidden = false;
     });
-  } catch (error) { status.textContent = `Không kết nối được Firebase: ${showError(error)}`; }
+  } catch (error) { status.textContent = `Không kết nối được Firebase: ${showError(error)}`; overlay.hidden = false; }
 }

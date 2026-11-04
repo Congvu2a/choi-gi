@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="room3d.css" />
   <link rel="stylesheet" href="immersive.css" />
   <link rel="stylesheet" href="music.css" />
-  <link rel="stylesheet" href="social.css?v=20261104-online1" />
+  <link rel="stylesheet" href="social.css?v=20261104-login2" />
   <link rel="stylesheet" href="quick-controls.css?v=20261104-2" />
   <style>
     .room-projection{pointer-events:auto!important}.room-projection iframe{pointer-events:none!important}.projection-shield{position:absolute;inset:0;z-index:5;background:transparent;pointer-events:auto;touch-action:none;cursor:default}.projection-hint{pointer-events:none!important}
@@ -97,16 +97,22 @@
     <button class="quick-volume-value" id="quickVolumeToggle" type="button" aria-label="Điều chỉnh âm lượng" title="Điều chỉnh âm lượng"><span id="quickVolumeText">14%</span></button>
     <div class="quick-volume-popover" id="quickVolumePopover" hidden><label for="quickVolumeRange">Âm lượng</label><input id="quickVolumeRange" type="range" min="0" max="100" value="14"><output id="quickVolumeOutput">14%</output></div>
   </div>
-  <div class="social-overlay" id="socialOverlay" hidden>
+  <div class="social-overlay" id="socialOverlay">
     <button class="social-backdrop" data-social-close aria-label="Đóng"></button>
     <section class="social-panel" role="dialog" aria-modal="true" aria-labelledby="socialTitle">
-      <header class="social-header"><div><span class="music-kicker">CHƠI GÌ? · ONLINE</span><h2 id="socialTitle">Tài khoản & bạn bè</h2></div><button class="music-close" data-social-close aria-label="Đóng">×</button></header>
+      <header class="social-header"><div><span class="music-kicker">CHƠI GÌ? · ONLINE</span><h2 id="socialTitle">Đăng nhập / đăng ký</h2></div><button class="music-close" data-social-close aria-label="Đóng">×</button></header>
       <div id="onlineStatus" class="online-status">Đang kiểm tra kết nối…</div>
       <div id="authSection"><div class="auth-switch"><button type="button" class="active" data-auth-mode="login">Đăng nhập</button><button type="button" data-auth-mode="signup">Tạo tài khoản</button></div>
         <form id="authForm" class="auth-form"><label for="authEmail">Email</label><input id="authEmail" type="email" autocomplete="email" required><label for="authPassword">Mật khẩu</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" required>
           <div id="signupFields" hidden><label for="characterName">Tên nhân vật</label><input id="characterName" maxlength="20" placeholder="Ví dụ: Mèo Cam"><label for="characterTag">Tên tài khoản @</label><input id="characterTag" maxlength="20" placeholder="meocam_01"><small>3–20 ký tự a–z, số hoặc gạch dưới.</small></div>
           <button class="social-primary" type="submit" id="authSubmit">Đăng nhập</button><p class="social-error" id="authError" role="alert"></p></form><p class="social-footnote">Tạo tài khoản để gặp bạn bè và giữ tên nhân vật của bạn.</p>
       </div>
+    </section>
+  </div>
+  <aside class="social-drawer" id="socialDrawer" hidden>
+    <button class="social-drawer-backdrop" data-drawer-close aria-label="Đóng bảng bạn bè"></button>
+    <section class="social-drawer-panel" aria-labelledby="socialDrawerTitle">
+      <header class="social-header"><div><span class="music-kicker">CHƠI GÌ? · ONLINE</span><h2 id="socialDrawerTitle">Bạn bè & chat</h2></div><button class="music-close" data-drawer-close aria-label="Đóng">×</button></header>
       <div id="signedInSection" hidden><div class="signed-in-card"><span class="online-avatar" id="socialAvatar">✦</span><div><b id="socialName">Người chơi</b><small id="socialHandle">@player</small></div><button type="button" id="signOutBtn" class="social-quiet">Thoát</button></div>
         <form id="nameForm" class="inline-edit"><label for="displayNameEdit">Tên nhân vật</label><div><input id="displayNameEdit" maxlength="20" required><button class="social-quiet" type="submit">Lưu</button></div></form>
         <div class="social-tabs"><button class="active" data-social-tab="friends">Bạn bè</button><button data-social-tab="chat">Chat phòng</button></div>
@@ -115,11 +121,11 @@
         <section id="chatPane" class="social-pane" hidden><div class="chat-room-note">Chat chung · nhớ giữ lịch sự nhé</div><div id="chatMessages" class="chat-messages" aria-live="polite"></div><form id="chatForm" class="chat-form"><input id="chatInput" maxlength="300" placeholder="Viết tin nhắn…" autocomplete="off" required><button class="social-primary" type="submit">Gửi</button></form></section>
       </div>
     </section>
-  </div>
+  </aside>
   <script src="script.js?v=20261104-online1"></script>
   <script src="music.js?v=20261104-sync2"></script>
   <script src="quick-controls.js?v=20261104-2"></script>
-  <script type="module" src="room3d.js?v=20261104-online1"></script>
-  <script type="module" src="online.js?v=20261104-sync3"></script>
+  <script type="module" src="room3d.js?v=20261104-login2"></script>
+  <script type="module" src="online.js?v=20261104-login2"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ const interact = document.querySelector('#interactBtn');
 const modal = document.querySelector('#gameModal');
 const musicOverlay = document.querySelector('#musicOverlay');
 const socialOverlay = document.querySelector('#socialOverlay');
+const socialDrawer = document.querySelector('#socialDrawer');
 if (!host) throw new Error('Không tìm thấy khu vực phòng game.');
 
 const scene = new THREE.Scene();
@@ -422,6 +423,10 @@ function switchRoom(room){
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
 function openStation(station) {
+  if (window.choigiOnlineReady !== true) {
+    if (socialOverlay) socialOverlay.hidden = false;
+    return;
+  }
   if(!station||station.userData.room!==activeRoom)return;
   if(station.userData.gameId==='jukebox'){
     if(typeof window.openMusicPanel==='function')window.openMusicPanel(activeRoom);
@@ -480,6 +485,10 @@ renderer.domElement.addEventListener('pointermove', e => { renderer.domElement.s
 renderer.domElement.addEventListener('click', e => { const station = pointerPosition(e); if (station) openStation(station); });
 
 function tryInteract() {
+  if (window.choigiOnlineReady !== true) {
+    if (socialOverlay) socialOverlay.hidden = false;
+    return;
+  }
   if (nearest) openStation(nearest);
   else window.showToast('Đi tới gần một máy game, máy nhạc hoặc ghế rồi nhấn E nhé!');
 }
@@ -506,15 +515,20 @@ document.querySelector('#shareRoomBtn')?.addEventListener('click', () => {
   else navigator.clipboard?.writeText(location.href).then(() => window.showToast('Đã sao chép link phòng!'));
 });
 document.addEventListener('keydown', e => {
-  if (modal.classList.contains('open') || !musicOverlay.hidden || (socialOverlay && !socialOverlay.hidden)) return;
+  if (modal.classList.contains('open') || !musicOverlay.hidden || (socialOverlay && !socialOverlay.hidden) || (socialDrawer && !socialDrawer.hidden)) return;
   const k = e.key.toLowerCase();
+  if (window.choigiOnlineReady !== true && ['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter'].includes(k)) {
+    e.preventDefault();
+    if (socialOverlay) socialOverlay.hidden = false;
+    return;
+  }
   if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter'].includes(k)) e.preventDefault();
   if (k === 'e' || k === 'enter') tryInteract(); else keys.add(k);
 });
 document.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur', () => keys.clear());
 document.querySelectorAll('[data-move]').forEach(btn => {
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); keys.add(({up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright'})[btn.dataset.move]); });
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); if(window.choigiOnlineReady!==true){if(socialOverlay)socialOverlay.hidden=false;return;} keys.add(({up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright'})[btn.dataset.move]); });
   for (const end of ['pointerup','pointerleave','pointercancel']) btn.addEventListener(end, () => keys.delete(({up:'arrowup',down:'arrowdown',left:'arrowleft',right:'arrowright'})[btn.dataset.move]));
 });
 
@@ -528,7 +542,7 @@ function animate() {
   if (keys.has('arrowup') || keys.has('w')) dz -= 1;
   if (keys.has('arrowdown') || keys.has('s')) dz += 1;
   const inputActive=dx!==0||dz!==0;
-  const canMove=!modal.classList.contains('open')&&musicOverlay.hidden&&(!socialOverlay||socialOverlay.hidden);
+  const canMove=window.choigiOnlineReady===true&&!modal.classList.contains('open')&&musicOverlay.hidden&&(!socialOverlay||socialOverlay.hidden)&&(!socialDrawer||socialDrawer.hidden);
   if(canMove&&inputActive){
     if(seated){seated=false;player.scale.y=1;}
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
