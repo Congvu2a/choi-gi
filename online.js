@@ -369,7 +369,6 @@ if (!firebaseReady) {
     const app = initializeApp(firebaseConfig); auth = initializeAuth(app, { persistence: inMemoryPersistence }); db = getDatabase(app);
     status.textContent = 'Firebase đã kết nối · đăng nhập để vào sảnh online.';
     onAuthStateChanged(auth, async nextUser => {
-      const cameFromLoginGate = !overlay.hidden;
       stopListeners(); if(presenceRef)remove(presenceRef).catch(()=>{});presenceRef = null;presenceWorld=null;user = nextUser;profile = null;window.choigiOnlineUserId=user?.uid||null;
       if (!user) {
         window.choigiOnlineReady = false;
@@ -396,7 +395,7 @@ if (!firebaseReady) {
       stopChatListener = onValue(query(ref(db, 'lobbyChat'), limitToLast(60)), renderMessages);
       await updatePresence();
       overlay.hidden = true;
-      if (cameFromLoginGate) drawer.hidden = false;
+      drawer.hidden = true;
     });
   } catch (error) { status.textContent = `Không kết nối được Firebase: ${showError(error)}`; overlay.hidden = false; }
 }
