@@ -134,7 +134,7 @@ for (let i = 0; i < 3; i++) {
 for (const [x,color,rot] of [[-1.08,'#d6ff8c',-0.16],[1.07,'#ffb3c9',0.16]]) {
   const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.48,0.2),mat(color,0.72)); pillow.position.set(x,1.25,-0.08); pillow.rotation.z=rot; pillow.castShadow=true; sofa.add(pillow);
 }
-sofa.userData.gameId='seat';sofa.userData.name='SOFA';sofa.userData.seatTarget={x:3.25,z:-3.65};
+sofa.userData.gameId='seat';sofa.userData.name='SOFA';sofa.userData.seatTarget={x:3.25,z:-6.4};sofa.userData.seatHeight=.70;sofa.userData.seatRotation=0;
 const pouf = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.68,0.58,12),mat('#cf8c9c')); pouf.position.set(3.1,0.3,5.7); pouf.castShadow=true; pouf.receiveShadow=true; loungeRoot.add(pouf);
 const poufTop = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.1,12),mat('#efb5a1')); poufTop.position.set(3.1,0.62,5.7); poufTop.castShadow=true; loungeRoot.add(poufTop);
 
@@ -218,7 +218,7 @@ function makeCinemaChair(x,z,rotation=0){
   const chair=new THREE.Group();chair.position.set(x,0,z);chair.rotation.y=rotation;cinemaRoot.add(chair);
   const wood=mat('#322932',.72),seatMat=mat('#815959',.62),seat=box(chair,.98,.16,.86,seatMat,0,.78,0);
   box(chair,.98,.82,.16,wood,0,1.18,-.35);for(const sx of [-.38,.38])for(const sz of [-.31,.31])box(chair,.105,.72,.105,wood,sx,.37,sz);
-  seat.userData.station=chair;chair.userData.gameId='seat';chair.userData.name='GHẾ RẠP';chair.userData.room='cinema';chair.userData.seatTarget={x:80+x-Math.sin(rotation)*1.05,z:z-Math.cos(rotation)*1.05};
+  seat.userData.station=chair;chair.userData.gameId='seat';chair.userData.name='GHẾ RẠP';chair.userData.room='cinema';chair.userData.seatTarget={x:80+x+Math.sin(rotation)*.05,z:z+Math.cos(rotation)*.05};chair.userData.seatHeight=.86;chair.userData.seatRotation=rotation;
   stations.push(chair);obstacles.push({x:80+x,z,r:.62});
 }
 function makeCinemaTable(x,z,index){
@@ -301,7 +301,7 @@ for(const x of [36.5,40,43.5]){
   const stool=new THREE.Group();stool.position.set(x,0,1.8);scene.add(stool);
   const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.16,0.85,10),mat('#40334f'));stem.position.y=0.46;stool.add(stem);
   const cushion=new THREE.Mesh(new THREE.CylinderGeometry(0.48,0.48,0.2,14),mat('#c879aa'));cushion.position.y=0.98;cushion.castShadow=true;stool.add(cushion);
-  stool.userData.gameId='seat';stool.userData.name='GHẾ QUẦY BAR';stool.userData.room='bar';stool.userData.seatTarget={x,z:2.75};stool.children[0].userData.station=stool;stations.push(stool);obstacles.push({x,z:1.8,r:0.58});
+  stool.userData.gameId='seat';stool.userData.name='GHẾ QUẦY BAR';stool.userData.room='bar';stool.userData.seatTarget={x,z:1.8};stool.userData.seatHeight=1.08;stool.userData.seatRotation=0;stool.children[0].userData.station=stool;stations.push(stool);obstacles.push({x,z:1.8,r:0.58});
 }
 const barReturn=new THREE.Group();barReturn.position.set(40,0,6.8);scene.add(barReturn);
 const returnRing=new THREE.Mesh(new THREE.TorusGeometry(0.72,0.1,10,32),mat('#d6ff72',0.2,{emissive:'#b3f45c',emissiveIntensity:1.3}));returnRing.position.y=1.15;barReturn.add(returnRing);
@@ -418,7 +418,7 @@ function makeChair(x,z,rotation=0) {
   box(chair,1.05,0.95,0.18,wood,0,1.17,-0.39);
   for(const sx of [-0.4,0.4]) for(const sz of [-0.34,0.34]) box(chair,0.12,0.7,0.12,wood,sx,0.36,sz);
   seat.userData.station=chair;
-  chair.userData.gameId='seat'; chair.userData.name='GHẾ NGỒI'; chair.userData.room='lounge'; chair.userData.seatTarget={x:x,z:z+1.15};
+  chair.userData.gameId='seat'; chair.userData.name='GHẾ NGỒI'; chair.userData.room='lounge'; chair.userData.seatTarget={x:x+Math.sin(rotation)*.05,z:z+Math.cos(rotation)*.05};chair.userData.seatHeight=.81;chair.userData.seatRotation=rotation;
   stations.push(chair); obstacles.push({x,z,r:0.72});
 }
 makeChair(-3.15,1.4,Math.PI); makeChair(3.15,1.4,Math.PI); makeChair(-3.15,5.2,Math.PI);
@@ -489,7 +489,8 @@ function createRemoteAvatar(uid,data){
     const shoe=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),mat('#f2d8a1'));shoe.position.set(side*.16,.15,.1);shoe.scale.set(1.15,.62,1.4);shoe.castShadow=true;avatar.add(shoe);
   }
   const nameTag=addLabel(avatar,String(data.displayName||data.username||'Bạn').slice(0,16),'#d6ff72');nameTag.position.y=2.48;nameTag.scale.set(2.5,.62,1);
-  avatar.userData.target=new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0);avatar.userData.targetRotation=0;
+  avatar.userData.target=new THREE.Vector3(Number(data.x)||0,Number(data.y)||0,Number(data.z)||0);avatar.userData.targetRotation=Number(data.rotation)||0;avatar.userData.seated=Boolean(data.seated);
+  avatar.scale.y=avatar.userData.seated ? .76 : 1;
   scene.add(avatar);avatar.position.copy(avatar.userData.target);
   return avatar;
 }
@@ -499,9 +500,10 @@ window.addEventListener('choigi-online-players',event=>{
     if(uid===window.choigiOnlineUserId)continue;
     known.add(uid);let avatar=remotePlayers.get(uid);
     if(!avatar){avatar=createRemoteAvatar(uid,data);remotePlayers.set(uid,avatar);}
-    const nextX=Number(data.x)||0,nextZ=Number(data.z)||0,moveX=nextX-avatar.userData.target.x,moveZ=nextZ-avatar.userData.target.z;
+    const nextX=Number(data.x)||0,nextY=Number(data.y)||0,nextZ=Number(data.z)||0,moveX=nextX-avatar.userData.target.x,moveZ=nextZ-avatar.userData.target.z;
     if(Math.hypot(moveX,moveZ)>.035)avatar.userData.targetRotation=Math.atan2(moveX,moveZ);
-    avatar.userData.target.set(nextX,0,nextZ);
+    if(data.seated)avatar.userData.targetRotation=Number(data.rotation)||0;
+    avatar.userData.seated=Boolean(data.seated);avatar.userData.target.set(nextX,nextY,nextZ);
   }
   for(const [uid,avatar] of remotePlayers)if(!known.has(uid)){scene.remove(avatar);remotePlayers.delete(uid);}
 });
@@ -520,7 +522,7 @@ function switchRoom(room){
   const shell=document.querySelector('.room-shell');shell?.classList.remove('bar-mode','left-mode','cinema-mode');
   if(activeRoom==='cinema')shell?.classList.add('cinema-mode');
   projectionFrame.classList.toggle('room-projection-cinema',activeRoom==='cinema');
-  seated=false;player.scale.y=1;
+  seated=false;player.scale.y=1;player.position.y=0;player.userData.seatBaseY=0;legs.forEach(leg=>leg.rotation.x=0);
   const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],bar:['NIGHT OWL · BAR','Quán bar <span>✦</span>','Nghe nhạc, xem video và ngồi ở quầy bar.'],cinema:['RẠP TRỜI · CHIẾU PHIM','Rạp ngoài trời <span>✦</span>','Chọn ghế, ngồi cùng bạn bè và xem chung trên màn chiếu lớn.']}[activeRoom];
   document.querySelector('#roomEyebrow').textContent=copy[0];document.querySelector('#roomHeading').innerHTML=copy[1];document.querySelector('#roomIntro').textContent=copy[2];
   document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> WASD để đi theo hướng camera · Kéo chuột để xoay góc nhìn. Tới ghế nhấn <b>E</b> để ngồi; video chiếu chung từ jukebox sảnh.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
@@ -546,8 +548,8 @@ function openStation(station) {
   else if(station.userData.gameId==='seat'){
     seated=!seated;
     playerVelocity.set(0,0);keys.clear();
-    if(seated){player.position.set(station.userData.seatTarget.x,0,station.userData.seatTarget.z);player.scale.y=.76;}
-    else player.scale.y=1;
+    if(seated){player.position.set(station.userData.seatTarget.x,Math.max(0,(station.userData.seatHeight||.82)-.045),station.userData.seatTarget.z);player.userData.seatBaseY=player.position.y;player.rotation.y=station.userData.seatRotation??station.rotation.y??0;player.scale.y=.76;legs.forEach(leg=>leg.rotation.x=-1.08);}
+    else {player.position.y=0;player.userData.seatBaseY=0;player.scale.y=1;legs.forEach(leg=>leg.rotation.x=0);}
     updateNearby();
   } else window.openGame(station.userData.gameId);
 }
@@ -655,7 +657,7 @@ function animate() {
   if(activeRoom==='cinema'&&inputActive){const strafe=dx,forward=-dz,c=Math.cos(cinemaCameraYaw),s=Math.sin(cinemaCameraYaw);dx=strafe*c-forward*s;dz=-strafe*s-forward*c;}
   const canMove=window.choigiOnlineReady===true&&!modal.classList.contains('open')&&musicOverlay.hidden&&(!socialOverlay||socialOverlay.hidden)&&(!socialDrawer||socialDrawer.hidden);
   if(canMove&&inputActive){
-    if(seated){seated=false;player.scale.y=1;}
+    if(seated){seated=false;player.scale.y=1;player.position.y=0;player.userData.seatBaseY=0;legs.forEach(leg=>leg.rotation.x=0);}
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
   } else { dx=0;dz=0; }
   const maxSpeed=4.4,response=inputActive&&canMove?9.5:12.5,blend=1-Math.exp(-response*dt);
@@ -703,16 +705,17 @@ function animate() {
   fan.rotation.y=t*0.48;
   screenLight.intensity=0.9+Math.sin(t*1.4)*0.22;
   orb.position.y=1.05+Math.sin(t*1.6)*0.17;
-  player.position.y = moving ? Math.abs(Math.sin(walkPhase*2)) * Math.min(0.055,speed*0.012) : Math.sin(t * 1.6) * 0.014;
-  legs.forEach((leg, i) => { leg.rotation.x = moving ? Math.sin(walkPhase + i * Math.PI) * 0.38 : THREE.MathUtils.damp(leg.rotation.x,0,9,dt); });
+  if(seated)player.position.y=player.userData.seatBaseY??player.position.y;else player.position.y = moving ? Math.abs(Math.sin(walkPhase*2)) * Math.min(0.055,speed*0.012) : Math.sin(t * 1.6) * 0.014;
+  legs.forEach((leg, i) => { leg.rotation.x = seated ? -1.08 : moving ? Math.sin(walkPhase + i * Math.PI) * 0.38 : THREE.MathUtils.damp(leg.rotation.x,0,9,dt); });
   arms.forEach(({arm,side}) => { arm.rotation.x = moving ? Math.sin(walkPhase + (side > 0 ? Math.PI : 0)) * 0.3 : THREE.MathUtils.damp(arm.rotation.x,0,8,dt); });
   for(const avatar of remotePlayers.values()){
     const distance=avatar.position.distanceTo(avatar.userData.target);
     avatar.position.lerp(avatar.userData.target,1-Math.exp(-8.5*dt));
     const turn=Math.atan2(Math.sin(avatar.userData.targetRotation-avatar.rotation.y),Math.cos(avatar.userData.targetRotation-avatar.rotation.y));avatar.rotation.y+=turn*(1-Math.exp(-9*dt));
-    const walking=distance>.025,phase=t*9+avatar.position.x;
-    avatar.position.y=walking?Math.abs(Math.sin(phase))*.045:THREE.MathUtils.damp(avatar.position.y,0,8,dt);
-    avatar.userData.legs.forEach((leg,index)=>{leg.rotation.x=walking?Math.sin(phase+index*Math.PI)*.34:THREE.MathUtils.damp(leg.rotation.x,0,8,dt);});
+    const walking=distance>.025&&!avatar.userData.seated,phase=t*9+avatar.position.x;
+    avatar.scale.y=THREE.MathUtils.damp(avatar.scale.y,avatar.userData.seated ? .76 : 1,10,dt);
+    avatar.position.y=avatar.userData.seated?THREE.MathUtils.damp(avatar.position.y,avatar.userData.target.y,12,dt):walking?Math.abs(Math.sin(phase))*.045:THREE.MathUtils.damp(avatar.position.y,0,8,dt);
+    avatar.userData.legs.forEach((leg,index)=>{leg.rotation.x=avatar.userData.seated?-1.08:walking?Math.sin(phase+index*Math.PI)*.34:THREE.MathUtils.damp(leg.rotation.x,0,8,dt);});
     avatar.userData.arms.forEach(({arm,side})=>{arm.rotation.x=walking?Math.sin(phase+(side>0?Math.PI:0))*.26:THREE.MathUtils.damp(arm.rotation.x,0,8,dt);});
   }
   for (const station of stations) {
@@ -720,14 +723,28 @@ function animate() {
     if (screen) screen.material.emissiveIntensity = 0.7 + Math.sin(t * 2.2 + station.position.x) * 0.16;
   }
   updateNearby();
-  if(performance.now()-lastPositionPublish>100){lastPositionPublish=performance.now();window.dispatchEvent(new CustomEvent('choigi-player-position',{detail:{x:player.position.x,z:player.position.z}}));}
+  if(performance.now()-lastPositionPublish>100){lastPositionPublish=performance.now();window.dispatchEvent(new CustomEvent('choigi-player-position',{detail:{x:player.position.x,y:seated?player.userData.seatBaseY:0,z:player.position.z,seated,rotation:player.rotation.y}}));}
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
-  const projectScreen=(screen,w,h,frame,enabled,planeZ=.23)=>{const corners=[new THREE.Vector3(-w,-h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(-w,h,planeZ)].map(v=>screen.localToWorld(v).project(camera));const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2}));const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));frame.style.left=`${left}px`;frame.style.top=`${top}px`;frame.style.width=`${right-left}px`;frame.style.height=`${bottom-top}px`;frame.style.display=enabled&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';};
+  const projectScreen=(screen,w,h,frame,planeZ=.23)=>{
+    // Match the iframe to the screen's projected quadrilateral, not its axis-aligned box.
+    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(-w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
+    if(corners.some(p=>p.z>1.2||p.z< -1.2)){frame.style.display='none';return;}
+    const dst=corners.map(p=>({x:(p.x+1)*rect.width/2,y:(1-p.y)*rect.height/2}));
+    const minX=Math.min(...dst.map(p=>p.x)),maxX=Math.max(...dst.map(p=>p.x)),minY=Math.min(...dst.map(p=>p.y)),maxY=Math.max(...dst.map(p=>p.y));
+    if(maxX<0||minX>rect.width||maxY<0||minY>rect.height){frame.style.display='none';return;}
+    const sourceW=1000,sourceH=sourceW*h/w,src=[[0,0],[sourceW,0],[sourceW,sourceH],[0,sourceH]],rows=[];
+    for(let i=0;i<4;i++){const {x,y}=src[i],X=dst[i].x,Y=dst[i].y;rows.push([x,y,1,0,0,0,-X*x,-X*y,X],[0,0,0,x,y,1,-Y*x,-Y*y,Y]);}
+    for(let c=0;c<8;c++){let pivot=c;for(let r=c+1;r<8;r++)if(Math.abs(rows[r][c])>Math.abs(rows[pivot][c]))pivot=r;[rows[c],rows[pivot]]=[rows[pivot],rows[c]];const divisor=rows[c][c];if(Math.abs(divisor)<1e-9){frame.style.display='none';return;}for(let j=c;j<9;j++)rows[c][j]/=divisor;for(let r=0;r<8;r++)if(r!==c){const factor=rows[r][c];for(let j=c;j<9;j++)rows[r][j]-=factor*rows[c][j];}}
+    const [a,b,c,d,e,f,g,k]=rows.map(r=>r[8]);
+    frame.style.left='0px';frame.style.top='0px';frame.style.width=`${sourceW}px`;frame.style.height=`${sourceH}px`;frame.style.transformOrigin='0 0';
+    frame.style.transform=`matrix3d(${a},${d},0,${g},${b},${e},0,${k},0,0,1,0,${c},${f},0,1)`;frame.style.display='block';frame.style.visibility='visible';
+  };
   const inBar=activeRoom==='bar';
-  projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,activeRoom==='lounge');
-  projectScreen(cinemaScreenGroup,8.31,4.52,projectionFrame,activeRoom==='cinema',.4);
-  projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,inBar);
+  if(activeRoom==='lounge')projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,.23);
+  else if(activeRoom==='cinema')projectScreen(cinemaScreenGroup,8.31,4.52,projectionFrame,.4);
+  else projectionFrame.style.display='none';
+  if(inBar)projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,.23);else barProjectionFrame.style.display='none';
   renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);

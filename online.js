@@ -17,7 +17,7 @@ const roomChatToggle = $('#roomChatToggle');
 let auth = null, db = null, user = null, profile = null, profileSetupPromise = null;
 window.choigiOnlineReady = false;
 window.choigiOnlineUserId = null;
-let authMode = 'login', currentRoom = 'lounge', lastPosition = { x: 0, z: 3.45 };
+let authMode = 'login', currentRoom = 'lounge', lastPosition = { x: 0, y: 0, z: 3.45, seated: false, rotation: 0 };
 let stopRoomListener = null, stopFriendListener = null, stopRequestListener = null, stopChatListener = null;
 let stopMusicListeners = [];
 let presenceRef = null, presenceWorld = null, positionWriteAt = 0;
@@ -245,7 +245,7 @@ async function updatePresence() {
     presenceWorld = key;
     await onDisconnect(presenceRef).remove();
   }
-  await set(presenceRef, { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, z: lastPosition.z, updatedAt: serverTimestamp() });
+  await set(presenceRef, { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, y: lastPosition.y, z: lastPosition.z, seated: lastPosition.seated, rotation: lastPosition.rotation, updatedAt: serverTimestamp() });
   stopRoomListener?.();
   stopRoomListener = onValue(ref(db, `rooms/${key}/players`), snapshot => {
     const players = snapshot.val() || {};
@@ -261,12 +261,13 @@ window.addEventListener('choigi-room-changed', event => {
 });
 window.addEventListener('choigi-player-position', event => {
   if (!user || !profile) return;
-  const now = performance.now(),nextPosition={x:event.detail.x,z:event.detail.z};
+  const now = performance.now(),nextPosition={x:event.detail.x,y:Number(event.detail.y)||0,z:event.detail.z,seated:Boolean(event.detail.seated),rotation:Number(event.detail.rotation)||0};
   const moved=Math.hypot(nextPosition.x-lastPosition.x,nextPosition.z-lastPosition.z)>.035;
-  if(now-positionWriteAt<(moved?80:1200))return;
+  const poseChanged=nextPosition.seated!==lastPosition.seated||Math.abs(nextPosition.y-lastPosition.y)>.06||Math.abs(nextPosition.rotation-lastPosition.rotation)>.12;
+  if(!poseChanged&&now-positionWriteAt<(moved?80:1200))return;
   positionWriteAt=now;lastPosition=nextPosition;
   const key = worldKey(currentRoom);
-  set(ref(db, `rooms/${key}/players/${user.uid}`), { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, z: lastPosition.z, updatedAt: serverTimestamp() }).catch(() => {});
+  set(ref(db, `rooms/${key}/players/${user.uid}`), { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, y: lastPosition.y, z: lastPosition.z, seated: lastPosition.seated, rotation: lastPosition.rotation, updatedAt: serverTimestamp() }).catch(() => {});
 });
 
 function renderPresenceEmpty() {
