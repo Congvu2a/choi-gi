@@ -1,0 +1,69 @@
+/* Arcade cabinet restyle for every mini game */
+#gameModal{--arcade-accent:#d6ff72}#gameModal[data-game="coin"]{--arcade-accent:#ffd16c}#gameModal[data-game="rps"]{--arcade-accent:#ff9eae}#gameModal[data-game="memory"],#gameModal[data-game="mines"]{--arcade-accent:#8ce3d4}#gameModal[data-game="shooter"]{--arcade-accent:#7bdcff}#gameModal[data-game="merge"]{--arcade-accent:#c39aff}#gameModal[data-game="whack"]{--arcade-accent:#ffa0c5}#gameModal .modal-backdrop{background:radial-gradient(ellipse at 50% 45%,#342747b8,#080710ed 72%);backdrop-filter:blur(12px)}
+#gameModal .modal-panel{width:min(560px,100%);padding:27px;background:linear-gradient(145deg,#282333 0%,#171620 68%,#201a29);border:1px solid #dba9ff33;border-radius:23px;box-shadow:0 28px 100px #000b,0 0 0 5px #ffffff06,inset 0 1px #ffffff18;overflow:hidden}
+#gameModal .modal-panel:before{content:"";position:absolute;inset:0 24px auto;height:3px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#d6ff72,#80e9df,#b78dff,#ff83ad);box-shadow:0 0 20px #b78dff66}
+#gameModal .modal-panel:after{content:"ARCADE · PLAYER 01";position:absolute;right:66px;top:24px;color:#aaa2bc;font:800 8px 'DM Sans',sans-serif;letter-spacing:1.8px;opacity:.8}
+#gameModal .modal-kicker{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #d6ff722b;border-radius:20px;background:#d6ff720b;color:var(--arcade-accent);font-size:8px;letter-spacing:1.7px}
+#gameModal .modal-kicker span{font-size:12px}
+#gameModal .modal-panel h2{margin:11px 0 17px;font-size:27px;letter-spacing:-.8px;text-shadow:0 3px 24px #d5baff24}
+#gameModal .modal-close{z-index:2;right:17px;top:16px;width:33px;height:33px;border:1px solid #ffffff1c;border-radius:50%;background:#ffffff08;color:#c7bfd3;line-height:1;transition:.2s}
+#gameModal .modal-close:hover{background:#ff83ad;color:#251522;transform:rotate(90deg)}
+#gameModal .game-area{position:relative;isolation:isolate;min-height:250px;padding:25px 22px;border:1px solid #d8c9ff18;border-radius:17px;background:radial-gradient(ellipse at 50% -22%,#51426999,transparent 58%),linear-gradient(145deg,#171620,#111118 72%);box-shadow:inset 0 1px #ffffff12,inset 0 -20px 50px #0003,0 14px 35px #0003;overflow:hidden}
+#gameModal .game-area:not(.reaction-area):before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 12% 18%,#d6ff7218 0 1px,transparent 2px),radial-gradient(circle at 83% 22%,#ff83ad21 0 1.5px,transparent 2.5px),radial-gradient(circle at 76% 84%,#9fe9e51b 0 1px,transparent 2px);background-size:95px 83px,130px 110px,110px 120px;opacity:.8}
+#gameModal .game-instructions{max-width:390px;margin:0 auto 20px;color:#b9b3c6;font-size:12px;line-height:1.65}
+#gameModal .game-instructions b{color:#e8ffab}
+#gameModal .game-button{min-height:40px;padding:10px 18px;border:1px solid #e7ff9c70;border-radius:11px;background:linear-gradient(135deg,#e0ff86,#bdf85c);color:#1d2414;font-size:12px;font-weight:900;box-shadow:0 5px 0 #739b39,0 9px 22px #b8ef5c24;transition:transform .14s,filter .14s,box-shadow .14s}
+#gameModal .game-button:hover{transform:translateY(-2px);filter:brightness(1.07);box-shadow:0 7px 0 #739b39,0 13px 27px #b8ef5c35}
+#gameModal .game-button:active{transform:translateY(3px);box-shadow:0 2px 0 #739b39}
+#gameModal .game-button.secondary{border-color:#ffffff1a;background:linear-gradient(135deg,#383345,#292633);color:#eee9f5;box-shadow:0 4px 0 #17151e}
+#gameModal .game-result{min-height:23px;margin:15px 0 0;color:#f2ecfb;font-size:14px}
+#gameModal .guess-row{width:min(310px,100%);justify-content:center}
+#gameModal .guess-row input{height:43px;border-radius:11px;border-color:#ffffff21;background:#0e0e15;box-shadow:inset 0 2px 8px #0007}
+#gameModal .guess-row input:focus{border-color:#d6ff72;box-shadow:0 0 0 3px #d6ff721c}
+#gameModal .coin-display{display:grid;place-items:center;width:82px;height:82px;margin:1px auto 18px;border:5px solid #ffdb73;border-radius:50%;background:radial-gradient(circle at 32% 25%,#fff1ad,#ffb83e 48%,#bd6a24);color:#fff2bd;font-size:39px;text-shadow:0 3px 8px #854514aa;box-shadow:0 0 0 7px #ffc95b16,0 10px 28px #0008,inset 0 0 0 2px #fff7;animation:arcadeCoinFloat 2.3s ease-in-out infinite}
+#gameModal .coin-display.coin-spin{animation:coinSpin .65s ease-in-out}
+#gameModal .rps-options{gap:12px}
+#gameModal .coin-choice{min-width:92px}
+#gameModal .memory-board{gap:9px;padding:12px;border:1px solid #ffffff14;border-radius:16px;background:#0d0d14aa;box-shadow:inset 0 2px 15px #0008}
+#gameModal .memory-card{width:54px;height:59px;border:1px solid #c7a8ff42;border-radius:12px;background:linear-gradient(145deg,#7657a4,#342649);color:#f4eeff;font-size:22px;box-shadow:0 5px 0 #21172e,0 9px 15px #0005;transition:.18s}
+#gameModal .memory-card:hover{transform:translateY(-3px);border-color:#d6ff72}
+#gameModal .memory-card.flipped,#gameModal .memory-card.matched{background:linear-gradient(145deg,#d9ff8b,#87c981);border-color:#eaffb2;color:#26331d;box-shadow:0 4px 0 #477647,0 0 18px #d6ff7240}
+#gameModal .reaction-area{position:relative;min-height:220px;border:1px solid #ffffff1c;border-radius:16px;background:radial-gradient(circle at center,#4c3a69,#171620 68%);box-shadow:inset 0 0 60px #0006}
+#gameModal .reaction-area:before{content:"✦";position:absolute;top:18px;right:22px;color:#d6ff72;font-size:18px;opacity:.8}
+#gameModal .reaction-area.waiting{background:radial-gradient(circle at center,#823f55,#241620 72%)}
+#gameModal .reaction-area.ready{background:radial-gradient(circle at center,#65b75a,#1d372c 72%);box-shadow:inset 0 0 70px #b6ff6d40,0 0 30px #9fff6655}
+#gameModal .reaction-area.result{background:radial-gradient(circle at center,#574779,#171620 72%)}
+#gameModal .reaction-big{font-size:27px;text-shadow:0 0 20px #d6ff7266}
+#gameModal .math-clock{align-self:stretch;margin:0 0 10px;padding:8px 12px;border:1px solid #ffffff17;border-radius:10px;background:#ffffff08;color:#d6ff72;font:800 11px 'DM Sans';letter-spacing:1px}
+#gameModal .math-question{margin:5px 0 15px;color:#fff;font:700 clamp(32px,7vw,48px)/1 'Space Grotesk';text-shadow:0 0 28px #b99aff55}
+#gameModal .math-score{color:#bcb5cb;font-size:12px}
+#gameModal .whack-board{display:grid;grid-template-columns:repeat(3,minmax(62px,78px));gap:10px;padding:13px;border:1px solid #ffffff14;border-radius:16px;background:radial-gradient(ellipse,#382b48,#111118 75%);box-shadow:inset 0 0 26px #0008}
+#gameModal .whack-hole{height:58px;border:1px solid #ffffff13;border-radius:50% 50% 12px 12px;background:linear-gradient(#09090f,#201a2a);color:#746982;font-size:22px;box-shadow:inset 0 9px 12px #0009,0 4px 0 #08080d}
+#gameModal .whack-hole.target{border-color:#d6ff72;background:radial-gradient(circle at 50% 45%,#b5fd7e,#4b734b 65%,#171d1a);font-size:31px;animation:arcadePop .2s ease-out;box-shadow:0 0 22px #d6ff7255,0 4px 0 #243c23}
+#gameModal .shooter-canvas{width:min(100%,520px);height:auto;border:1px solid #a998ff55;border-radius:14px;background:#080c18;box-shadow:0 0 28px #7d65ff27,inset 0 0 18px #7ddcff12}
+#gameModal .shooter-controls button,#gameModal .merge-controls button{min-width:45px;height:39px;border:1px solid #ffffff1e;border-radius:10px;background:linear-gradient(145deg,#383345,#201e2a);color:#e9e4f2;box-shadow:0 4px 0 #111018}
+#gameModal .shooter-controls button[data-fire]{min-width:100px;background:linear-gradient(135deg,#ff9ab8,#d76b9e);color:#301528;box-shadow:0 4px 0 #813958}
+#gameModal .merge-score{margin:0 0 9px;color:#bdb5cb;font-size:11px}
+#gameModal .merge-score b{display:inline-block;padding:6px 11px;border-radius:8px;background:#d6ff7218;color:#ddff90;font:800 13px 'Space Grotesk'}
+#gameModal .merge-board{display:grid;grid-template-columns:repeat(4,58px);gap:7px;padding:10px;border:1px solid #ffffff1b;border-radius:14px;background:#191721;box-shadow:inset 0 4px 18px #0008}
+#gameModal .merge-cell{display:grid;place-items:center;width:58px;height:58px;border:1px solid #ffffff0d;border-radius:10px;background:#262430;color:#fff;font:700 20px 'Space Grotesk';box-shadow:inset 0 1px #ffffff0b;transition:.12s}
+#gameModal .merge-cell[data-value="2"]{background:linear-gradient(145deg,#e8d9b9,#b7a47e);color:#392e27}
+#gameModal .merge-cell[data-value="4"]{background:linear-gradient(145deg,#ffc58c,#db8c68);color:#482b24}
+#gameModal .merge-cell[data-value="8"]{background:linear-gradient(145deg,#ff9eae,#dc5f8b)}
+#gameModal .merge-cell[data-value="16"],#gameModal .merge-cell[data-value="32"]{background:linear-gradient(145deg,#c49aff,#7753bd)}
+#gameModal .merge-cell[data-value="64"],#gameModal .merge-cell[data-value="128"],#gameModal .merge-cell[data-value="256"],#gameModal .merge-cell[data-value="512"],#gameModal .merge-cell[data-value="1024"],#gameModal .merge-cell[data-value="2048"]{background:linear-gradient(145deg,#e3ff8d,#91c94d);color:#24311b;box-shadow:0 0 16px #d6ff7244}
+#gameModal .merge-controls{margin-top:9px}
+#gameModal .merge-controls button:hover,#gameModal .shooter-controls button:hover{border-color:#d6ff72;color:#eaffad}
+#gameModal .mine-flag{margin-bottom:12px}
+#gameModal .mine-board{display:grid;grid-template-columns:repeat(6,38px);gap:5px;padding:9px;border:1px solid #ffffff14;border-radius:13px;background:#121119;box-shadow:inset 0 4px 14px #0008}
+#gameModal .mine-cell{width:38px;height:38px;border:1px solid #ffffff1c;border-radius:8px;background:linear-gradient(145deg,#4b425d,#292432);color:#f6f0ff;font-size:17px;font-weight:800;box-shadow:0 3px 0 #15131c;transition:.12s}
+#gameModal .mine-cell:hover{transform:translateY(-2px);border-color:#d6ff72}
+#gameModal .mine-cell.opened{background:#1b2630;border-color:#83ddd155;box-shadow:inset 0 0 12px #0008}
+#gameModal .mine-cell[data-near="1"]{color:#8be8db}#gameModal .mine-cell[data-near="2"]{color:#d6ff72}#gameModal .mine-cell[data-near="3"]{color:#ff9db8}#gameModal .mine-cell.mine-hit{background:#a33f58;box-shadow:0 0 22px #ff527788}
+#gameModal .ttt-board{padding:10px;border:1px solid #ffffff14;border-radius:15px;background:#121119}
+#gameModal .ttt-cell{border-radius:13px;background:linear-gradient(145deg,#353143,#211f2b);box-shadow:0 4px 0 #121119, inset 0 1px #ffffff12;transition:.14s}
+#gameModal .ttt-cell:hover{transform:translateY(-2px);border-color:#d6ff72}
+@keyframes arcadeCoinFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
+@keyframes arcadePop{from{transform:scale(.72)}to{transform:scale(1)}}
+@media(max-width:560px){#gameModal{padding:10px}#gameModal .modal-panel{padding:23px 15px 16px;border-radius:18px}#gameModal .modal-panel:after{display:none}#gameModal .modal-panel h2{font-size:23px}#gameModal .game-area{padding:18px 12px;min-height:230px}#gameModal .memory-board{grid-template-columns:repeat(4,46px);gap:6px;padding:9px}#gameModal .memory-card{width:46px;height:51px}#gameModal .merge-board{grid-template-columns:repeat(4,min(18vw,58px));gap:5px;padding:7px}#gameModal .merge-cell{width:min(18vw,58px);height:min(18vw,58px);font-size:18px}#gameModal .mine-board{grid-template-columns:repeat(6,min(10vw,38px));gap:4px;padding:6px}#gameModal .mine-cell{width:min(10vw,38px);height:min(10vw,38px)}}
+@keyframes coinSpin{0%{transform:rotateY(0) scale(1)}50%{transform:rotateY(540deg) scale(1.16)}100%{transform:rotateY(1080deg) scale(1)}}
