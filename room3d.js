@@ -383,26 +383,42 @@ for (const sx of [-0.17, 0.17]) {
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.62, 24), new THREE.MeshBasicMaterial({ color: '#100d19', transparent: true, opacity: 0.34 })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.012; player.add(shadow);
 const playerLight = new THREE.PointLight('#bca2ff', 0.55, 3.5); playerLight.position.set(0, 2.1, 0); player.add(playerLight);
 
-// Other signed-in visitors appear as small live avatars in the same shared game world.
+// Other signed-in visitors use the same full low-poly avatar silhouette as the local player.
 const remotePlayers=new Map();
+function createRemoteAvatar(uid,data){
+  const avatar=new THREE.Group();avatar.userData.arms=[];avatar.userData.legs=[];
+  const palette=['#57b7cf','#e58aae','#78c98a','#e4a55c','#9a83e8','#71a7e8'];
+  const hash=[...String(uid)].reduce((sum,char)=>sum+char.charCodeAt(0),0);
+  const shirtMat=mat(palette[hash%palette.length],0.58),skin=mat('#ffd0ae',0.7),hairMatRemote=mat('#49304f',0.82);
+  const shirt=new THREE.Mesh(new THREE.CapsuleGeometry(0.36,0.5,4,8),shirtMat);shirt.position.y=1.05;shirt.castShadow=true;avatar.add(shirt);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.36,14,12),skin);head.position.y=1.82;head.castShadow=true;avatar.add(head);
+  const hairCap=new THREE.Mesh(new THREE.SphereGeometry(0.375,14,9,0,Math.PI*2,0,Math.PI*.53),hairMatRemote);hairCap.position.y=1.94;hairCap.castShadow=true;avatar.add(hairCap);
+  for(const side of [-1,1]){
+    const ear=new THREE.Mesh(new THREE.SphereGeometry(0.095,9,8),skin);ear.position.set(side*.35,1.78,.015);avatar.add(ear);
+    const arm=new THREE.Group();arm.position.set(side*.3,1.37,.025);avatar.add(arm);
+    const sleeve=new THREE.Mesh(new THREE.CapsuleGeometry(.125,.27,4,8),shirtMat);sleeve.position.set(side*.08,-.18,0);sleeve.rotation.z=-side*.16;sleeve.castShadow=true;arm.add(sleeve);
+    const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.07,9),mat('#d9c4ff'));cuff.position.set(side*.12,-.35,.02);cuff.rotation.z=-side*.16;arm.add(cuff);
+    const forearm=new THREE.Mesh(new THREE.CapsuleGeometry(.078,.17,3,7),skin);forearm.position.set(side*.15,-.47,.03);forearm.rotation.z=-side*.16;forearm.castShadow=true;arm.add(forearm);
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),skin);hand.position.set(side*.17,-.62,.065);hand.scale.set(1,.82,.75);hand.castShadow=true;arm.add(hand);
+    avatar.userData.arms.push({arm,side});
+    const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.26,3,7),mat('#e5b5cf'));leg.position.set(side*.16,.41,0);leg.castShadow=true;avatar.add(leg);avatar.userData.legs.push(leg);
+    const shoe=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),mat('#f2d8a1'));shoe.position.set(side*.16,.15,.1);shoe.scale.set(1.15,.62,1.4);shoe.castShadow=true;avatar.add(shoe);
+  }
+  const nameTag=addLabel(avatar,String(data.displayName||data.username||'Bạn').slice(0,16),'#d6ff72');nameTag.position.y=2.48;nameTag.scale.set(2.5,.62,1);
+  avatar.userData.target=new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0);
+  scene.add(avatar);avatar.position.copy(avatar.userData.target);
+  return avatar;
+}
 window.addEventListener('choigi-online-players',event=>{
   const players=event.detail?.players||{},known=new Set();
   for(const [uid,data] of Object.entries(players)){
     if(uid===window.choigiOnlineUserId)continue;
     known.add(uid);let avatar=remotePlayers.get(uid);
-    if(!avatar){
-      avatar=new THREE.Group();
-      const shirt=new THREE.Mesh(new THREE.CapsuleGeometry(0.34,0.48,4,8),mat('#57b7cf',0.58));shirt.position.y=1.02;shirt.castShadow=true;avatar.add(shirt);
-      const face=new THREE.Mesh(new THREE.SphereGeometry(0.34,12,10),mat('#ffd0ae'));face.position.y=1.78;face.castShadow=true;avatar.add(face);
-      const hairCap=new THREE.Mesh(new THREE.SphereGeometry(0.35,12,8,0,Math.PI*2,0,Math.PI*.52),mat('#49304f'));hairCap.position.y=1.9;avatar.add(hairCap);
-      const nameTag=addLabel(avatar,String(data.displayName||data.username||'Bạn').slice(0,16),'#d6ff72');nameTag.position.y=2.45;nameTag.scale.set(2.5,0.62,1);
-      scene.add(avatar);remotePlayers.set(uid,avatar);
-    }
-    avatar.position.set(Number(data.x)||0,0,Number(data.z)||0);
+    if(!avatar){avatar=createRemoteAvatar(uid,data);remotePlayers.set(uid,avatar);}
+    avatar.userData.target.set(Number(data.x)||0,0,Number(data.z)||0);
   }
   for(const [uid,avatar] of remotePlayers)if(!known.has(uid)){scene.remove(avatar);remotePlayers.delete(uid);}
 });
-
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 const keys = new Set();
@@ -584,6 +600,14 @@ function animate() {
   player.position.y = moving ? Math.abs(Math.sin(walkPhase*2)) * Math.min(0.055,speed*0.012) : Math.sin(t * 1.6) * 0.014;
   legs.forEach((leg, i) => { leg.rotation.x = moving ? Math.sin(walkPhase + i * Math.PI) * 0.38 : THREE.MathUtils.damp(leg.rotation.x,0,9,dt); });
   arms.forEach(({arm,side}) => { arm.rotation.x = moving ? Math.sin(walkPhase + (side > 0 ? Math.PI : 0)) * 0.3 : THREE.MathUtils.damp(arm.rotation.x,0,8,dt); });
+  for(const avatar of remotePlayers.values()){
+    const distance=avatar.position.distanceTo(avatar.userData.target);
+    avatar.position.lerp(avatar.userData.target,1-Math.exp(-10*dt));
+    const walking=distance>.025,phase=t*9+avatar.position.x;
+    avatar.position.y=walking?Math.abs(Math.sin(phase))*.045:THREE.MathUtils.damp(avatar.position.y,0,8,dt);
+    avatar.userData.legs.forEach((leg,index)=>{leg.rotation.x=walking?Math.sin(phase+index*Math.PI)*.34:THREE.MathUtils.damp(leg.rotation.x,0,8,dt);});
+    avatar.userData.arms.forEach(({arm,side})=>{arm.rotation.x=walking?Math.sin(phase+(side>0?Math.PI:0))*.26:THREE.MathUtils.damp(arm.rotation.x,0,8,dt);});
+  }
   for (const station of stations) {
     const screen = station.children.find(c => c.geometry?.type === 'BoxGeometry' && c.position.y === 1.33 && c.position.z === 0.55);
     if (screen) screen.material.emissiveIntensity = 0.7 + Math.sin(t * 2.2 + station.position.x) * 0.16;
