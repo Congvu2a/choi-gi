@@ -261,8 +261,10 @@ window.addEventListener('choigi-room-changed', event => {
 });
 window.addEventListener('choigi-player-position', event => {
   if (!user || !profile) return;
-  const now = performance.now(); if (now - positionWriteAt < 350) return;
-  positionWriteAt = now; lastPosition = { x: event.detail.x, z: event.detail.z };
+  const now = performance.now(),nextPosition={x:event.detail.x,z:event.detail.z};
+  const moved=Math.hypot(nextPosition.x-lastPosition.x,nextPosition.z-lastPosition.z)>.035;
+  if(now-positionWriteAt<(moved?80:1200))return;
+  positionWriteAt=now;lastPosition=nextPosition;
   const key = worldKey(currentRoom);
   set(ref(db, `rooms/${key}/players/${user.uid}`), { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, z: lastPosition.z, updatedAt: serverTimestamp() }).catch(() => {});
 });

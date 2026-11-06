@@ -149,10 +149,10 @@
   window.openMusicPanel = (room = 'lounge') => {
     currentRoom = room === 'bar' ? 'bar' : 'game';
     queue = loadQueue(currentRoom);
-    title.textContent = currentRoom === 'bar' ? 'Máy phát nhạc quán bar' : 'Máy phát nhạc phòng game';
-    kicker.textContent = currentRoom === 'bar' ? 'JUKEBOX · QUÁN BAR RIÊNG' : 'JUKEBOX · HAI PHÒNG GAME';
-    queueTitle.textContent = currentRoom === 'bar' ? 'Danh sách nhạc quán bar' : 'Danh sách nhạc chung hai phòng game';
-    const note=document.querySelector('#musicNote');if(note)note.textContent = currentRoom === 'bar' ? 'Nhạc và video của quán bar độc lập với hai phòng game.' : 'Hai phòng game dùng chung danh sách và màn hình.';
+    title.textContent = currentRoom === 'bar' ? 'Máy phát nhạc quán bar' : 'Máy phát nhạc chung';
+    kicker.textContent = currentRoom === 'bar' ? 'JUKEBOX · QUÁN BAR RIÊNG' : 'JUKEBOX · PHÒNG GAME + RẠP TRỜI';
+    queueTitle.textContent = currentRoom === 'bar' ? 'Danh sách nhạc quán bar' : 'Danh sách nhạc dùng chung';
+    const note=document.querySelector('#musicNote');if(note)note.textContent = currentRoom === 'bar' ? 'Nhạc và video của quán bar độc lập với các phòng khác.' : 'Sảnh, hai phòng game và rạp ngoài trời cùng xem video từ danh sách này.';
     externalLink.hidden = !getPlayer()?.src;
     updatePlayerNote(); render(); overlay.hidden = false; urlField.focus();
   };
@@ -166,7 +166,7 @@
     if (!parsed) { window.showToast('Link chưa đúng. Hãy dán link video hoặc playlist YouTube.'); return; }
     const item = { ...parsed, name: nameField.value.trim() || (parsed.type === 'playlist' ? 'Playlist YouTube' : `Video ${parsed.id.slice(0, 6)}…`) };
     queue.push(item); save(); render(); play(item); urlField.value = ''; nameField.value = '';
-    window.showToast(currentRoom === 'bar' ? 'Đã thêm nhạc riêng cho quán bar!' : 'Đã thêm nhạc chung cho hai phòng game!');
+    window.showToast(currentRoom === 'bar' ? 'Đã thêm nhạc riêng cho quán bar!' : 'Đã thêm nhạc dùng chung cho các phòng game và rạp ngoài trời!');
   });
 
   document.querySelector('#clearMusicQueue').addEventListener('click', () => {
@@ -176,7 +176,7 @@
 
   window.addEventListener('choigi-room-changed', e => {
     const nextRoom=e.detail?.room;
-    if(['lounge','left','right','bar'].includes(nextRoom)){currentRoom=nextRoom==='bar'?'bar':'game';const player=getPlayer();if(player?.src)player.hidden=false;}
+    if(['lounge','left','right','bar','cinema'].includes(nextRoom)){currentRoom=nextRoom==='bar'?'bar':'game';const player=getPlayer();if(player?.src)player.hidden=false;}
   });
 
   render();
