@@ -727,24 +727,21 @@ function animate() {
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,planeZ=.23)=>{
-    // Match the iframe to the screen's projected quadrilateral, not its axis-aligned box.
-    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(-w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
-    if(corners.some(p=>p.z>1.2||p.z< -1.2)){frame.style.display='none';return;}
-    const dst=corners.map(p=>({x:(p.x+1)*rect.width/2,y:(1-p.y)*rect.height/2}));
-    const minX=Math.min(...dst.map(p=>p.x)),maxX=Math.max(...dst.map(p=>p.x)),minY=Math.min(...dst.map(p=>p.y)),maxY=Math.max(...dst.map(p=>p.y));
-    if(maxX<0||minX>rect.width||maxY<0||minY>rect.height){frame.style.display='none';return;}
-    const sourceW=1000,sourceH=sourceW*h/w,src=[[0,0],[sourceW,0],[sourceW,sourceH],[0,sourceH]],rows=[];
-    for(let i=0;i<4;i++){const {x,y}=src[i],X=dst[i].x,Y=dst[i].y;rows.push([x,y,1,0,0,0,-X*x,-X*y,X],[0,0,0,x,y,1,-Y*x,-Y*y,Y]);}
-    for(let c=0;c<8;c++){let pivot=c;for(let r=c+1;r<8;r++)if(Math.abs(rows[r][c])>Math.abs(rows[pivot][c]))pivot=r;[rows[c],rows[pivot]]=[rows[pivot],rows[c]];const divisor=rows[c][c];if(Math.abs(divisor)<1e-9){frame.style.display='none';return;}for(let j=c;j<9;j++)rows[c][j]/=divisor;for(let r=0;r<8;r++)if(r!==c){const factor=rows[r][c];for(let j=c;j<9;j++)rows[r][j]-=factor*rows[c][j];}}
-    const [a,b,c,d,e,f,g,k]=rows.map(r=>r[8]);
+    // Stable affine projection keeps the YouTube frame attached to the screen while the camera moves.
+    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(-w,-h,planeZ),new THREE.Vector3(w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
+    if(corners.some(p=>p.z>1||p.z< -1)){frame.style.display='none';return;}
+    const [tl,tr,bl,br]=corners.map(p=>({x:(p.x+1)*rect.width/2,y:(1-p.y)*rect.height/2}));
+    const sourceW=1000,sourceH=sourceW*h/w;
+    const a=(tr.x-tl.x)/sourceW,b=(tr.y-tl.y)/sourceW,c=(bl.x-tl.x)/sourceH,d=(bl.y-tl.y)/sourceH;
+    const minX=Math.min(tl.x,tr.x,bl.x,br.x),maxX=Math.max(tl.x,tr.x,bl.x,br.x),minY=Math.min(tl.y,tr.y,bl.y,br.y),maxY=Math.max(tl.y,tr.y,bl.y,br.y);
+    if(maxX<=0||minX>=rect.width||maxY<=0||minY>=rect.height){frame.style.display='none';return;}
     frame.style.left='0px';frame.style.top='0px';frame.style.width=`${sourceW}px`;frame.style.height=`${sourceH}px`;frame.style.transformOrigin='0 0';
-    frame.style.transform=`matrix3d(${a},${d},0,${g},${b},${e},0,${k},0,0,1,0,${c},${f},0,1)`;frame.style.display='block';frame.style.visibility='visible';
+    frame.style.transform=`matrix(${a},${b},${c},${d},${tl.x},${tl.y})`;frame.style.display='block';frame.style.visibility='visible';
   };
   const inBar=activeRoom==='bar';
   if(activeRoom==='lounge')projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,.23);
   else if(activeRoom==='cinema')projectScreen(cinemaScreenGroup,8.31,4.52,projectionFrame,.4);
   else projectionFrame.style.display='none';
-  if(inBar)projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,.23);else barProjectionFrame.style.display='none';
-  renderer.render(scene, camera);
+  if(inBar)projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,.23);else barProjectionFrame.style.display='none';  renderer.render(scene, camera);
 }
 renderer.setAnimationLoop(animate);
