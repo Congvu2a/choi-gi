@@ -529,7 +529,14 @@ function switchRoom(room){
   projectionHint.innerHTML=activeRoom==='cinema'?'<span>▶</span><b>RẠP NGOÀI TRỜI</b><small>Video chung đang được chiếu từ jukebox sảnh</small>':'<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>';
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
-function openStation(station) {
+function standFromSeat(){
+  if(!seated)return;
+  const angle=player.rotation.y,origin=player.userData.seatTarget||{x:player.position.x,z:player.position.z};
+  const isBlocked=(x,z)=>obstacles.some(o=>o.minX!==undefined?x+0.34>o.minX&&x-0.34<o.maxX&&z+0.34>o.minZ&&z-0.34<o.maxZ:Math.hypot(x-o.x,z-o.z)<o.r+0.34);
+  let exit={x:origin.x+Math.sin(angle)*1.2,z:origin.z+Math.cos(angle)*1.2};
+  for(let distance=.85;distance<=4.1;distance+=.25){const candidate={x:origin.x+Math.sin(angle)*distance,z:origin.z+Math.cos(angle)*distance};if(!isBlocked(candidate.x,candidate.z)){exit=candidate;break;}}
+  player.position.set(exit.x,0,exit.z);player.userData.seatBaseY=0;player.scale.y=1;seated=false;player.userData.seatTarget=null;legs.forEach(leg=>leg.rotation.x=0);
+}function openStation(station) {
   if (window.choigiOnlineReady !== true) {
     if (socialOverlay) socialOverlay.hidden = false;
     return;
@@ -546,10 +553,9 @@ function openStation(station) {
     switchRoom(station.userData.targetRoom);
   }
   else if(station.userData.gameId==='seat'){
-    seated=!seated;
     playerVelocity.set(0,0);keys.clear();
-    if(seated){player.position.set(station.userData.seatTarget.x,Math.max(0,(station.userData.seatHeight||.82)-.045),station.userData.seatTarget.z);player.userData.seatBaseY=player.position.y;player.rotation.y=station.userData.seatRotation??station.rotation.y??0;player.scale.y=.76;legs.forEach(leg=>leg.rotation.x=-1.08);}
-    else {player.position.y=0;player.userData.seatBaseY=0;player.scale.y=1;legs.forEach(leg=>leg.rotation.x=0);}
+    if(seated)standFromSeat();
+    else {seated=true;player.position.set(station.userData.seatTarget.x,Math.max(0,(station.userData.seatHeight||.82)-.045),station.userData.seatTarget.z);player.userData.seatBaseY=player.position.y;player.userData.seatTarget={...station.userData.seatTarget};player.rotation.y=station.userData.seatRotation??station.rotation.y??0;player.scale.y=.76;legs.forEach(leg=>leg.rotation.x=-1.08);}
     updateNearby();
   } else window.openGame(station.userData.gameId);
 }
@@ -657,7 +663,7 @@ function animate() {
   if(activeRoom==='cinema'&&inputActive){const strafe=dx,forward=-dz,c=Math.cos(cinemaCameraYaw),s=Math.sin(cinemaCameraYaw);dx=strafe*c-forward*s;dz=-strafe*s-forward*c;}
   const canMove=window.choigiOnlineReady===true&&!modal.classList.contains('open')&&musicOverlay.hidden&&(!socialOverlay||socialOverlay.hidden)&&(!socialDrawer||socialDrawer.hidden);
   if(canMove&&inputActive){
-    if(seated){seated=false;player.scale.y=1;player.position.y=0;player.userData.seatBaseY=0;legs.forEach(leg=>leg.rotation.x=0);}
+    if(seated)standFromSeat();
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
   } else { dx=0;dz=0; }
   const maxSpeed=4.4,response=inputActive&&canMove?9.5:12.5,blend=1-Math.exp(-response*dt);
@@ -727,18 +733,21 @@ function animate() {
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,planeZ=.23)=>{
-    // Stable affine projection keeps the YouTube frame attached to the screen while the camera moves.
-    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(-w,-h,planeZ),new THREE.Vector3(w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
+    // Solve a normalized four-corner homography so all screen corners stay registered.
+    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(-w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
     if(corners.some(p=>p.z>1||p.z< -1)){frame.style.display='none';return;}
-    const [tl,tr,bl,br]=corners.map(p=>({x:(p.x+1)*rect.width/2,y:(1-p.y)*rect.height/2}));
-    const sourceW=1000,sourceH=sourceW*h/w;
-    const a=(tr.x-tl.x)/sourceW,b=(tr.y-tl.y)/sourceW,c=(bl.x-tl.x)/sourceH,d=(bl.y-tl.y)/sourceH;
-    const minX=Math.min(tl.x,tr.x,bl.x,br.x),maxX=Math.max(tl.x,tr.x,bl.x,br.x),minY=Math.min(tl.y,tr.y,bl.y,br.y),maxY=Math.max(tl.y,tr.y,bl.y,br.y);
+    const dst=corners.map(p=>({x:(p.x+1)*rect.width/2,y:(1-p.y)*rect.height/2}));
+    const minX=Math.min(...dst.map(p=>p.x)),maxX=Math.max(...dst.map(p=>p.x)),minY=Math.min(...dst.map(p=>p.y)),maxY=Math.max(...dst.map(p=>p.y));
     if(maxX<=0||minX>=rect.width||maxY<=0||minY>=rect.height){frame.style.display='none';return;}
+    const sourceW=1000,sourceH=sourceW*h/w,src=[[0,0],[1,0],[1,1],[0,1]],rows=[];
+    for(let i=0;i<4;i++){const [u,v]=src[i],X=dst[i].x,Y=dst[i].y;rows.push([u,v,1,0,0,0,-X*u,-X*v,X],[0,0,0,u,v,1,-Y*u,-Y*v,Y]);}
+    for(let col=0;col<8;col++){let pivot=col;for(let row=col+1;row<8;row++)if(Math.abs(rows[row][col])>Math.abs(rows[pivot][col]))pivot=row;[rows[col],rows[pivot]]=[rows[pivot],rows[col]];const divisor=rows[col][col];if(Math.abs(divisor)<1e-10){frame.style.display='none';return;}for(let j=col;j<9;j++)rows[col][j]/=divisor;for(let row=0;row<8;row++)if(row!==col){const factor=rows[row][col];for(let j=col;j<9;j++)rows[row][j]-=factor*rows[col][j];}}
+    const [A,B,C,D,E,F,G,H]=rows.map(row=>row[8]);
+    const a=A/sourceW,b=B/sourceH,c=C,d=D/sourceW,e=E/sourceH,f=F,g=G/sourceW,k=H/sourceH;
+    if(![a,b,c,d,e,f,g,k].every(Number.isFinite)){frame.style.display='none';return;}
     frame.style.left='0px';frame.style.top='0px';frame.style.width=`${sourceW}px`;frame.style.height=`${sourceH}px`;frame.style.transformOrigin='0 0';
-    frame.style.transform=`matrix(${a},${b},${c},${d},${tl.x},${tl.y})`;frame.style.display='block';frame.style.visibility='visible';
-  };
-  const inBar=activeRoom==='bar';
+    frame.style.transform=`matrix3d(${a},${d},0,${g},${b},${e},0,${k},0,0,1,0,${c},${f},0,1)`;frame.style.display='block';frame.style.visibility='visible';
+  };  const inBar=activeRoom==='bar';
   if(activeRoom==='lounge')projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,.23);
   else if(activeRoom==='cinema')projectScreen(cinemaScreenGroup,8.31,4.52,projectionFrame,.4);
   else projectionFrame.style.display='none';
