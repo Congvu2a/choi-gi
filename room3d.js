@@ -360,20 +360,21 @@ cinemaExit.userData.gameId='door';cinemaExit.userData.name='CỔNG VỀ SẢNH';
 // Low-poly mountain ridges surround the forest, keeping the horizon filled
 // when the camera turns around the larger open-air venue.
 const cinemaMountainMats=['#17283a','#1b3038','#20373a','#1a2638'].map(color=>mat(color,.98));
+const cinemaMountainGroup=new THREE.Group();cinemaMountainGroup.name='cinema-distant-mountains';cinemaMountainGroup.visible=false;cinemaRoot.add(cinemaMountainGroup);
 for(let i=0;i<17;i++){
   const side=i%2?1:-1,index=Math.floor(i/2),x=side*(78+(index%3)*8),z=-48+index*13,height=12+(index%4)*3,radius=10+(index%3)*3;
-  const peak=new THREE.Mesh(new THREE.ConeGeometry(radius,height,6,1),cinemaMountainMats[i%cinemaMountainMats.length]);peak.position.set(x,height/2-1,z);peak.rotation.y=(i%5)*.38;peak.castShadow=true;cinemaRoot.add(peak);
+  const peak=new THREE.Mesh(new THREE.ConeGeometry(radius,height,6,1),cinemaMountainMats[i%cinemaMountainMats.length]);peak.position.set(x,height/2-1,z);peak.rotation.y=(i%5)*.38;peak.castShadow=true;cinemaMountainGroup.add(peak);
 }
 for(let i=0;i<8;i++){
   const x=-80+i*23,z=i%2?-74:78,height=14+(i%3)*3.2;
-  const ridge=new THREE.Mesh(new THREE.ConeGeometry(10+(i%2)*2,height,5,1),cinemaMountainMats[(i+1)%cinemaMountainMats.length]);ridge.position.set(x,height/2-1,z);ridge.castShadow=true;cinemaRoot.add(ridge);
+  const ridge=new THREE.Mesh(new THREE.ConeGeometry(10+(i%2)*2,height,5,1),cinemaMountainMats[(i+1)%cinemaMountainMats.length]);ridge.position.set(x,height/2-1,z);ridge.castShadow=true;cinemaMountainGroup.add(ridge);
 }
 // A complete low-poly ridge around the lake keeps mountains visible from
 // every camera angle, including the newly extended rear garden.
 for(let i=0;i<22;i++){
   const angle=(i/22)*Math.PI*2,radius=88+(i%3)*8,height=15+(i%5)*3,width=12+(i%4)*2;
   const peak=new THREE.Mesh(new THREE.ConeGeometry(width,height,6,1),cinemaMountainMats[(i+2)%cinemaMountainMats.length]);
-  peak.position.set(Math.cos(angle)*radius,height/2-1,8+Math.sin(angle)*radius);peak.rotation.y=angle*.37;peak.castShadow=true;cinemaRoot.add(peak);
+  peak.position.set(Math.cos(angle)*radius,height/2-1,8+Math.sin(angle)*radius);peak.rotation.y=angle*.37;peak.castShadow=true;cinemaMountainGroup.add(peak);
 }
 // A broken shoreline of rocks traces both sides of the widened deck.
 for(let i=0;i<12;i++){
@@ -710,6 +711,7 @@ function switchRoom(room){
   const next=['lounge','left','right','bar','cinema','race'].includes(room)?room:'lounge';
   if(next===activeRoom)return;
   activeRoom=next;
+  cinemaMountainGroup.visible=activeRoom==='cinema'||activeRoom==='race';
   raceRoot.visible=activeRoom==='race';
   const shell=document.querySelector('.room-shell');shell?.classList.remove('bar-mode','left-mode','cinema-mode','race-mode');
   if(activeRoom==='cinema')shell?.classList.add('cinema-mode');if(activeRoom==='race')shell?.classList.add('race-mode');
@@ -951,10 +953,10 @@ function animate() {
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,enabled,planeZ=.23)=>{
-    const screenCenter=screen.getWorldPosition(new THREE.Vector3()),screenNormal=new THREE.Vector3(0,0,1).applyQuaternion(screen.getWorldQuaternion(new THREE.Quaternion())),toCamera=camera.position.clone().sub(screenCenter);
+    const cameraSpace=screen.worldToLocal(camera.position.clone());
     // The DOM video is a front-face overlay on the physical screen. Hiding it
     // from the back prevents a second, mirrored image appearing behind it.
-    if(!enabled||screenNormal.dot(toCamera)<=0){frame.style.display='none';return;}
+    if(!enabled||cameraSpace.z<=planeZ+.08){frame.style.display='none';return;}
     // CSS perspective mapping expects top-left, top-right, bottom-right,
     // bottom-left. The old order started at bottom-left and flipped the video.
     const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(-w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
@@ -965,7 +967,6 @@ function animate() {
     const a=p2.x-p1.x+g*p2.x,b=p4.x-p1.x+k*p4.x,c=p1.x,d=p2.y-p1.y+g*p2.y,e=p4.y-p1.y+k*p4.y,f=p1.y;
     frame.style.left='0px';frame.style.top='0px';frame.style.width=`${width}px`;frame.style.height=`${height}px`;frame.style.transformOrigin='0 0';
     frame.style.transform=`matrix3d(${a/width},${d/width},0,${g/width},${b/height},${e/height},0,${k/height},0,0,1,0,${c},${f},0,1)`;
-    const cameraSpace=screen.worldToLocal(camera.position.clone());
     const tooClose=cameraSpace.z<planeZ+1.25;
     frame.style.display=!tooClose&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';
   };
