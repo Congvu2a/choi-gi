@@ -269,6 +269,10 @@ function addCinemaDoor(parent,x,z,label,targetRoom,targetPosition,color='#d6ff72
   door.userData.gameId='door';door.userData.name=label;door.userData.room='cinema';door.userData.targetRoom=targetRoom;door.userData.targetPosition=targetPosition;base.userData.station=door;stations.push(door);animatedDecor.push({type:'portal',mesh:ring,phase:z});return door;
 }
 addCinemaDoor(cinemaRoot,0,61.5,'ĐƯỜNG ĐUA','race',{x:103,z:110},'#d6ff72');
+const rearGuide=addLabel(cinemaRoot,'ĐI RA SAU · RẼ TRÁI TỚI TỦ ĐỒ · ĐI THẲNG TỚI SÂN ĐUA','#d6ff72');rearGuide.position.set(0,2.55,45);rearGuide.scale.set(8.2,.82,1);
+const rearPathMat=mat('#d6ff72',.22,{emissive:'#b3f45c',emissiveIntensity:1.45}),wardrobePathMat=mat('#a9eaff',.22,{emissive:'#7bdcff',emissiveIntensity:1.25});
+for(const z of [46,49,52,55,58]){const marker=box(cinemaRoot,.48,.035,.48,rearPathMat,0,.035,z,false);marker.rotation.y=Math.PI/4;}
+for(const [x,z] of [[-7,48],[-14,49],[-21,51],[-27,52]]){const marker=box(cinemaRoot,.42,.035,.42,wardrobePathMat,x,.035,z,false);marker.rotation.y=Math.PI/4;}
 
 // Broad oval circuit behind the cinema, with an approach road, pit lane,
 // edge lighting, barriers and distant terrain. Objects keep natural scale.
@@ -713,7 +717,7 @@ function switchRoom(room){
   seated=false;seatedStation=null;player.scale.y=1;
   const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],bar:['NIGHT OWL · BAR','Quán bar <span>✦</span>','Nghe nhạc, xem video và ngồi ở quầy bar.'],cinema:['RẠP TRỜI · CHIẾU PHIM','Rạp ngoài trời <span>✦</span>','Chọn ghế, ngồi cùng bạn bè và xem chung trên màn chiếu lớn.'],race:['ĐƯỜNG ĐUA · PINE RIDGE','Sân đua đêm <span>✦</span>','Đến xe thể thao màu đỏ để lái. W ga · S phanh · A/D đánh lái · giữ Shift tăng tốc.']}[activeRoom];
   document.querySelector('#roomEyebrow').textContent=copy[0];document.querySelector('#roomHeading').innerHTML=copy[1];document.querySelector('#roomIntro').textContent=copy[2];
-  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> WASD để đi theo hướng camera · Giữ <b>Shift</b> để chạy · Kéo chuột để xoay góc nhìn. Đi ra sau rạp để tới tủ đồ hoặc đường đua.':activeRoom==='race'?'<span>✦</span> Đường đua rộng phía sau rạp · W ga · S phanh/lùi · A/D lái · giữ Shift tăng tốc · Space phanh tay · E lên/xuống xe. Kéo chuột để xoay camera.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
+  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> Ra phía sau rạp: đi thẳng tới cổng <b>ĐƯỜNG ĐUA</b>, rẽ trái ở lối đèn xanh tới <b>TỦ ĐỒ</b>. WASD · Shift chạy · kéo chuột xoay camera.':activeRoom==='race'?'<span>✦</span> Đường đua rộng phía sau rạp · W ga · S phanh/lùi · A/D lái · giữ Shift tăng tốc · Space phanh tay · E lên/xuống xe. Kéo chuột để xoay camera.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
   projectionHint.innerHTML=activeRoom==='cinema'?'<span>▶</span><b>RẠP NGOÀI TRỜI</b><small>Video chung đang được chiếu từ jukebox sảnh</small>':'<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>';
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
@@ -762,7 +766,7 @@ function updateNearby() {
     interact.lastChild.textContent = door ? ` Đi tới ${doorName}` : wardrobeHere?' Mở tủ đồ':carHere?' Lái xe':seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
     interact.classList.add('can-interact');
   } else {
-    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':activeRoom==='bar'?'Đi tới jukebox riêng của bar hoặc ghế để tương tác.':activeRoom==='cinema'?'Đi tới ghế xem phim; khu tủ đồ và lối sang sân đua ở phía sau rạp.':activeRoom==='race'?'Đi tới xe thể thao ở lối vào để bắt đầu lái.':'Đi lại gần một máy game để bắt đầu chơi.';
+    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':activeRoom==='bar'?'Đi tới jukebox riêng của bar hoặc ghế để tương tác.':activeRoom==='cinema'?'Ra sau rạp: giữ S để đi thẳng tới cổng ĐƯỜNG ĐUA; rẽ trái theo đèn xanh để tới TỦ ĐỒ.':activeRoom==='race'?'Đi tới xe thể thao ở lối vào để bắt đầu lái.':'Đi lại gần một máy game để bắt đầu chơi.';
     interact.lastChild.textContent = ' Chơi ở đây';
     interact.classList.remove('can-interact');
   }
@@ -903,6 +907,7 @@ function animate() {
     const followDistance=drivingCar?20:16,lookAhead=drivingCar?9:6.5,horizontal=followDistance*Math.cos(cinemaCameraPitch),forwardX=drivingCar?-Math.sin(raceCar.rotation.y)-Math.sin(cinemaCameraYaw)*.48:-Math.sin(cinemaCameraYaw),forwardZ=drivingCar?-Math.cos(raceCar.rotation.y)-Math.cos(cinemaCameraYaw)*.48:-Math.cos(cinemaCameraYaw);
     cameraGoal.set(focus.x-forwardX*horizontal,focus.y+followDistance*Math.sin(cinemaCameraPitch),focus.z-forwardZ*horizontal);
     lookGoal.set(focus.x+forwardX*lookAhead,focus.y+(drivingCar?1.2:2.0),focus.z+forwardZ*lookAhead);
+    if(activeRoom==='cinema'&&!drivingCar){const screenZ=cinemaRoot.position.z+cinemaScreenGroup.position.z;if(Math.abs(cameraGoal.x-cinemaRoot.position.x)<13.2&&cameraGoal.z<screenZ+2.1)cameraGoal.z=screenZ+2.1;}
   }else{
     cameraGoal.set(player.position.x,player.position.y+14.2,player.position.z+22.55);
     lookGoal.set(player.position.x,player.position.y+2.1,player.position.z-3.45);
@@ -947,7 +952,13 @@ function animate() {
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,enabled,planeZ=.23)=>{
-    const corners=[new THREE.Vector3(-w,-h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(-w,h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
+    const screenCenter=screen.getWorldPosition(new THREE.Vector3()),screenNormal=new THREE.Vector3(0,0,1).applyQuaternion(screen.getWorldQuaternion(new THREE.Quaternion())),toCamera=camera.position.clone().sub(screenCenter);
+    // The DOM video is a front-face overlay on the physical screen. Hiding it
+    // from the back prevents a second, mirrored image appearing behind it.
+    if(!enabled||screenNormal.dot(toCamera)<=0){frame.style.display='none';return;}
+    // CSS perspective mapping expects top-left, top-right, bottom-right,
+    // bottom-left. The old order started at bottom-left and flipped the video.
+    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(-w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
     const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2})),[p1,p2,p3,p4]=px;
     const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));
     const width=1000,height=width*h/w,dx1=p2.x-p3.x,dx2=p4.x-p3.x,dx3=p1.x-p2.x+p3.x-p4.x,dy1=p2.y-p3.y,dy2=p4.y-p3.y,dy3=p1.y-p2.y+p3.y-p4.y,den=dx1*dy2-dx2*dy1;
@@ -955,7 +966,9 @@ function animate() {
     const a=p2.x-p1.x+g*p2.x,b=p4.x-p1.x+k*p4.x,c=p1.x,d=p2.y-p1.y+g*p2.y,e=p4.y-p1.y+k*p4.y,f=p1.y;
     frame.style.left='0px';frame.style.top='0px';frame.style.width=`${width}px`;frame.style.height=`${height}px`;frame.style.transformOrigin='0 0';
     frame.style.transform=`matrix3d(${a/width},${d/width},0,${g/width},${b/height},${e/height},0,${k/height},0,0,1,0,${c},${f},0,1)`;
-    frame.style.display=enabled&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';
+    const cameraSpace=screen.worldToLocal(camera.position.clone());
+    const tooClose=cameraSpace.z<planeZ+1.25;
+    frame.style.display=!tooClose&&bottom>0&&top<rect.height&&right>0&&left<rect.width?'block':'none';frame.style.visibility='visible';
   };
   const inBar=activeRoom==='bar';
   projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,activeRoom==='lounge');
