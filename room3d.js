@@ -211,9 +211,9 @@ cinemaScreenGroup=new THREE.Group();cinemaScreenGroup.position.set(0,7,-14.55);c
 roundedPanel(cinemaScreenGroup,22.1,12.55,.52,mat('#19151f',.35,{metalness:.32}),0,0,0,.5);
 roundedPanel(cinemaScreenGroup,21.55,12.1,.1,mat('#614651',.46,{metalness:.22}),0,0,.3,.36);
 cinemaVideoSurface=box(cinemaScreenGroup,21,11.82,.04,mat('#070a10',.4),0,0,.37,false);
-// A fixed outer housing, layered rails and fasteners make the projection feel
-// mounted to the truss rather than floating in front of the scenery.
-roundedPanel(cinemaScreenGroup,23.1,13.3,.68,mat('#111722',.46,{metalness:.5}),0,0,-.38,.52);
+// Keep the front frame and rails. There is deliberately no large rear panel:
+// from behind the display the scenery should remain visible, not read as a
+// second blank screen.
 for(const y of [-6.45,6.45])box(cinemaScreenGroup,22.9,.22,.62,mat('#343743',.4,{metalness:.56}),0,y,.42);
 for(const x of [-11.3,11.3])box(cinemaScreenGroup,.22,12.7,.62,mat('#343743',.4,{metalness:.56}),x,0,.42);
 for(const x of [-10.85,10.85])for(const y of [-6,6]){const bolt=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),mat('#b08a61',.36,{metalness:.65}));bolt.position.set(x,y,.76);cinemaScreenGroup.add(bolt);}
@@ -972,7 +972,9 @@ function animate() {
   };
   const inBar=activeRoom==='bar';
   projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,activeRoom==='lounge');
-  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema',.4);
+  const cinemaCameraLocal=cinemaScreenGroup.worldToLocal(camera.position.clone());
+  cinemaScreenGroup.visible=activeRoom==='cinema'&&cinemaCameraLocal.z>.08;
+  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema'&&cinemaScreenGroup.visible,.4);
   projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,inBar);
   renderer.render(scene, camera);
 }
