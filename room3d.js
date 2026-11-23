@@ -28,9 +28,9 @@ renderer.toneMappingExposure = 1.15;
 renderer.domElement.className = 'three-room-canvas';
 renderer.domElement.setAttribute('aria-label', 'Căn phòng game 3D. Di chuyển bằng WASD hoặc phím mũi tên.');
 host.append(renderer.domElement);
-host.addEventListener('pointerdown',e=>{if(activeRoom!=='cinema'||e.button!==0)return;cameraDragging=true;lastPointerX=e.clientX;lastPointerY=e.clientY;host.setPointerCapture?.(e.pointerId);renderer.domElement.style.cursor='grabbing';e.preventDefault();},true);
+host.addEventListener('pointerdown',e=>{if(!['cinema','race'].includes(activeRoom)||e.button!==0||e.target.closest('.wardrobe-panel,.race-speed-hud'))return;cameraDragging=true;lastPointerX=e.clientX;lastPointerY=e.clientY;host.setPointerCapture?.(e.pointerId);renderer.domElement.style.cursor='grabbing';e.preventDefault();},true);
 host.addEventListener('pointermove',e=>{if(!cameraDragging)return;const dx=e.clientX-lastPointerX,dy=e.clientY-lastPointerY;lastPointerX=e.clientX;lastPointerY=e.clientY;cinemaCameraYaw-=dx*.005;cinemaCameraPitch=THREE.MathUtils.clamp(cinemaCameraPitch+dy*.003,.18,.95);},true);
-const stopCameraDrag=e=>{if(!cameraDragging)return;cameraDragging=false;renderer.domElement.style.cursor=activeRoom==='cinema'?'grab':'default';if(e?.pointerId!==undefined&&host.hasPointerCapture?.(e.pointerId))host.releasePointerCapture(e.pointerId);};
+const stopCameraDrag=e=>{if(!cameraDragging)return;cameraDragging=false;renderer.domElement.style.cursor=['cinema','race'].includes(activeRoom)?'grab':'default';if(e?.pointerId!==undefined&&host.hasPointerCapture?.(e.pointerId))host.releasePointerCapture(e.pointerId);};
 host.addEventListener('pointerup',stopCameraDrag,true);host.addEventListener('pointercancel',stopCameraDrag,true);host.addEventListener('lostpointercapture',()=>{cameraDragging=false;});
 
 const roomHemisphere=new THREE.HemisphereLight('#d5ddff', '#5a3b53', 2.0);scene.add(roomHemisphere);
@@ -245,6 +245,81 @@ function makeCinemaChair(x,z,rotation=Math.PI){
 for(const z of [-8,-1,6,13,20,27,34,41]){
   for(const x of [-27,-21,-15,-9,9,15,21,27])makeCinemaChair(x,z,Math.PI);
 }
+
+// A walk-in wardrobe lives at the rear garden edge, near the race entrance.
+const wardrobe=new THREE.Group();wardrobe.position.set(-29,0,52);cinemaRoot.add(wardrobe);
+box(wardrobe,4.2,.24,1.05,mat('#282a38',.42,{metalness:.35}),0,.12,0);
+box(wardrobe,3.7,3.3,.42,mat('#322b3d',.32,{metalness:.32}),0,1.78,-.23);
+for(const x of [-1.86,0,1.86])box(wardrobe,.08,3.18,.5,mat('#a17b61',.3,{metalness:.62}),x,1.8,-.23);
+for(const x of [-1.55,-.78,0,.78,1.55]){
+  const hanger=new THREE.Mesh(new THREE.TorusGeometry(.18,.035,6,14,Math.PI),mat('#d6c2a0',.3,{metalness:.75}));hanger.position.set(x,2.62,.12);hanger.rotation.x=Math.PI/2;wardrobe.add(hanger);
+  const coat=new THREE.Mesh(new THREE.BoxGeometry(.48,.84,.12),mat(['#b15e73','#438c92','#d9ad57','#77905c','#7864a7'][Math.round((x+1.55)/.78)%5],.48));coat.position.set(x,1.98,.12);coat.castShadow=true;wardrobe.add(coat);
+}
+const wardrobeMirror=box(wardrobe,1.1,2.35,.08,mat('#a6d4e0',.16,{metalness:.75,roughness:.16}),0,1.55,.31,false);wardrobeMirror.material.emissive.set('#18313a');wardrobeMirror.material.emissiveIntensity=.22;
+const wardrobeSign=addLabel(wardrobe,'TỦ ĐỒ · THAY TRANG PHỤC','#d6ff72');wardrobeSign.position.set(0,3.65,0);wardrobeSign.scale.set(4.1,.7,1);
+const wardrobeBase=box(wardrobe,2.2,.12,.8,mat('#30243b'),0,.08,.85);wardrobeBase.userData.station=wardrobe;
+wardrobe.userData.gameId='wardrobe';wardrobe.userData.name='TỦ ĐỒ';wardrobe.userData.room='cinema';wardrobeBase.userData.station=wardrobe;stations.push(wardrobe);obstacles.push({x:71,z:52,r:2.5});
+
+// Link the back of the cinema to the driving area behind it.
+function addCinemaDoor(parent,x,z,label,targetRoom,targetPosition,color='#d6ff72'){
+  const door=new THREE.Group();door.position.set(x,0,z);parent.add(door);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.9,.13,10,36),mat(color,.25,{emissive:color,emissiveIntensity:1.35}));ring.position.y=1.35;door.add(ring);
+  const base=box(door,2,.16,.72,mat('#30243b'),0,.1,0);base.userData.station=door;
+  const sign=addLabel(door,label,color);sign.position.set(0,2.55,0);sign.scale.set(3,.68,1);
+  door.userData.gameId='door';door.userData.name=label;door.userData.room='cinema';door.userData.targetRoom=targetRoom;door.userData.targetPosition=targetPosition;base.userData.station=door;stations.push(door);animatedDecor.push({type:'portal',mesh:ring,phase:z});return door;
+}
+addCinemaDoor(cinemaRoot,0,61.5,'ĐƯỜNG ĐUA','race',{x:103,z:110},'#d6ff72');
+
+// Broad oval circuit behind the cinema, with an approach road, pit lane,
+// edge lighting, barriers and distant terrain. Objects keep natural scale.
+const raceRoot=new THREE.Group();raceRoot.name='san-dua';raceRoot.position.set(100,0,0);raceRoot.visible=false;scene.add(raceRoot);
+const raceGrass=mat('#263b35',.98),roadMat=mat('#242934',.96),kerbA=mat('#eee2c8',.75),kerbB=mat('#d85658',.72),barrierMat=mat('#525660',.58,{metalness:.38});
+const raceGround=new THREE.Mesh(new THREE.PlaneGeometry(240,220),raceGrass);raceGround.rotation.x=-Math.PI/2;raceGround.position.set(0,-.56,165);raceGround.receiveShadow=true;raceRoot.add(raceGround);
+box(raceRoot,15,.12,85,roadMat,0,-.1,105);
+for(let z=66;z<148;z+=2.5){box(raceRoot,12,.035,.075,mat('#f1d690',.45,{emissive:'#9b7d42',emissiveIntensity:.16}),0,-.015,z,false);}
+const ovalCenterZ=181,ovalA=54,ovalB=34,roadHalf=9,segments=220;
+const ovalGeometry=new THREE.BufferGeometry(),ovalPos=[],ovalUv=[],ovalIdx=[];
+for(let i=0;i<=segments;i++){
+  const a=i/segments*Math.PI*2,cx=ovalA*Math.cos(a),cz=ovalCenterZ+ovalB*Math.sin(a),nx=Math.cos(a)/ovalA,nz=Math.sin(a)/ovalB,nl=Math.hypot(nx,nz),ox=nx/nl,oz=nz/nl;
+  for(const side of [-1,1]){ovalPos.push(cx+ox*roadHalf*side,-.03,cz+oz*roadHalf*side);ovalUv.push(i/segments,side>0?1:0);}
+  if(i<segments){const j=i*2;ovalIdx.push(j,j+2,j+1,j+1,j+2,j+3);}
+}
+ovalGeometry.setAttribute('position',new THREE.Float32BufferAttribute(ovalPos,3));ovalGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(ovalUv,2));ovalGeometry.setIndex(ovalIdx);ovalGeometry.computeVertexNormals();const ovalRoad=new THREE.Mesh(ovalGeometry,roadMat);ovalRoad.receiveShadow=true;raceRoot.add(ovalRoad);
+function ovalPoint(t,offset=0,y=.06){const x=ovalA*Math.cos(t),z=ovalCenterZ+ovalB*Math.sin(t),nx=Math.cos(t)/ovalA,nz=Math.sin(t)/ovalB,nl=Math.hypot(nx,nz);return new THREE.Vector3(x+nx/nl*offset,y,z+nz/nl*offset);}
+for(const offset of [-roadHalf+.55,roadHalf-.55]){const count=segments/2,curbs=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.045,1),kerbA,count),dummy=new THREE.Object3D();for(let i=0;i<count;i++){const pts=[ovalPoint((i*2)/segments*Math.PI*2,offset,.02),ovalPoint((i*2+1)/segments*Math.PI*2,offset,.02)],d=pts[1].clone().sub(pts[0]);dummy.position.copy(pts[0]).add(pts[1]).multiplyScalar(.5);dummy.scale.set(1,1,d.length());dummy.rotation.y=Math.atan2(d.x,d.z);dummy.updateMatrix();curbs.setMatrixAt(i,dummy.matrix);curbs.setColorAt(i,new THREE.Color(i%2?'#eee2c8':'#d85658'));}raceRoot.add(curbs);}
+for(const offset of [-roadHalf-2,roadHalf+2]){const points=Array.from({length:segments+1},(_,i)=>ovalPoint(i/segments*Math.PI*2,offset,.42));const curve=new THREE.CatmullRomCurve3(points,true);const rail=new THREE.Mesh(new THREE.TubeGeometry(curve,segments,offset<0?.42:.42,7,true),barrierMat);rail.castShadow=true;raceRoot.add(rail);}
+// Start/finish stripe and broad grid boxes on the near straight.
+for(let i=0;i<16;i++){const x=-7.5+i;box(raceRoot,.88,.035,.52,mat(i%2?'#e9e7e2':'#22252b',.8),x,.01,147,false);}
+for(let row=0;row<4;row++)for(const side of [-1,1])box(raceRoot,2,.04,.14,mat('#d6d3cc',.55),side*(2.7+row*.3),.01,151-row*2,false);
+// Pit garage on the western side and grandstand to the east.
+const pit=new THREE.Group();pit.position.set(-69,0,128);raceRoot.add(pit);box(pit,22,5.4,8,mat('#343846',.72),0,2.7,0);box(pit,23,.34,8.6,mat('#d6ff72',.34,{emissive:'#a8cd45',emissiveIntensity:.7}),0,5.45,0,false);box(pit,20,2.1,.12,mat('#151922'),0,2.15,4.08);
+for(let i=0;i<5;i++){box(pit,3.2,1.9,.18,mat(['#b54d57','#4e8e9c','#b58e48','#63815c','#7164a2'][i]),-8+i*4,2.15,4.2,false);}
+const pitSign=addLabel(pit,'PIT LANE · GARAGE','#d6ff72');pitSign.position.set(0,6.1,4.5);pitSign.scale.set(4,.75,1);
+const stand=new THREE.Group();stand.position.set(81,0,175);raceRoot.add(stand);box(stand,20,.5,12,mat('#333641'),0,.25,0);for(let row=0;row<4;row++){box(stand,20,.42,2.3,mat(row%2?'#464956':'#393d49'),0,.62+row*.62,-3.9+row*2.3);for(let x=-8;x<=8;x+=2)box(stand,.85,.78,.75,mat(['#b44f62','#4f92a1','#b09050'][((x+8)/2+row)%3]),x,1+row*.62,-3.9+row*2.3);}
+for(const side of [-1,1])for(let i=0;i<7;i++){const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(2.1+(i%3)*.6,1),mat(['#455047','#39474a','#4b5058'][i%3],.98));rock.position.set(side*(82+i%2*5),1.2,91+i*18);rock.scale.set(1.8,1.2,2.5);rock.castShadow=true;raceRoot.add(rock);}
+for(const side of [-1,1])for(let i=0;i<12;i++){const mountain=new THREE.Mesh(new THREE.ConeGeometry(7+(i%3)*2,16+(i%4)*4,7),mat(i%2?'#243237':'#29363b',.99));mountain.position.set(side*(92+(i%3)*9),8,65+i*18);raceRoot.add(mountain);}
+for(let i=0;i<16;i++){const x=-57+i*7.6;const pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.2,8,8),barrierMat);pole.position.set(x,4,145);raceRoot.add(pole);const lamp=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),mat('#ffe5ac',.2,{emissive:'#ffd27c',emissiveIntensity:1.8}));lamp.position.set(x,8,145);raceRoot.add(lamp);const light=new THREE.PointLight('#ffd8a0',.75,15);light.position.copy(lamp.position);raceRoot.add(light);}
+
+function createCarModel(color='#d84940'){
+  const car=new THREE.Group();
+  const paint=mat(color,.24,{metalness:.72}),dark=mat('#171c23',.36,{metalness:.55}),glass=mat('#192c3a',.18,{metalness:.5,transparent:true,opacity:.9}),rubber=mat('#111317',.88),metal=mat('#9ba2aa',.26,{metalness:.78});
+  const shell=new THREE.Mesh(new THREE.BoxGeometry(2.25,.62,4.3),paint);shell.position.y=.9;shell.castShadow=true;car.add(shell);
+  const hood=new THREE.Mesh(new THREE.BoxGeometry(1.98,.2,1.08),paint);hood.position.set(0,1.23,-1.47);hood.castShadow=true;car.add(hood);
+  const rear=new THREE.Mesh(new THREE.BoxGeometry(1.95,.18,.78),paint);rear.position.set(0,1.2,1.55);car.add(rear);
+  const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.64,.78,1.95),paint);cabin.position.set(0,1.55,-.05);cabin.castShadow=true;car.add(cabin);
+  const wind=new THREE.Mesh(new THREE.BoxGeometry(1.48,.52,.06),glass);wind.position.set(0,1.64,-1.04);wind.rotation.x=-.22;car.add(wind);
+  const backGlass=new THREE.Mesh(new THREE.BoxGeometry(1.45,.48,.06),glass);backGlass.position.set(0,1.62,.91);backGlass.rotation.x=.22;car.add(backGlass);
+  for(const x of [-.81,.81]){const sideGlass=new THREE.Mesh(new THREE.BoxGeometry(.055,.48,1.25),glass);sideGlass.position.set(x,1.63,-.02);car.add(sideGlass);}
+  const spoiler=new THREE.Mesh(new THREE.BoxGeometry(2.45,.12,.38),dark);spoiler.position.set(0,1.66,1.93);car.add(spoiler);for(const x of [-.86,.86]){const support=new THREE.Mesh(new THREE.BoxGeometry(.09,.4,.1),metal);support.position.set(x,1.48,1.82);car.add(support);}
+  const wheels=[];for(const x of [-1.12,1.12])for(const z of [-1.35,1.35]){const wheel=new THREE.Group();wheel.position.set(x,.52,z);const tire=new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.32,18),rubber);tire.rotation.z=Math.PI/2;tire.castShadow=true;wheel.add(tire);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.34,12),metal);hub.rotation.z=Math.PI/2;wheel.add(hub);for(let spoke=0;spoke<5;spoke++){const sp=new THREE.Mesh(new THREE.BoxGeometry(.045,.33,.025),mat('#d5d8dc',.24,{metalness:.75}));sp.position.set(0,0,0);sp.rotation.y=spoke*Math.PI/5;hub.add(sp);}car.add(wheel);wheels.push(wheel);}
+  for(const x of [-.72,.72]){const headlamp=new THREE.Mesh(new THREE.BoxGeometry(.46,.16,.055),mat('#fff1bd',.2,{emissive:'#fff0c0',emissiveIntensity:1.4}));headlamp.position.set(x,1.02,-2.17);car.add(headlamp);const tail=new THREE.Mesh(new THREE.BoxGeometry(.5,.16,.055),mat('#ff313f',.22,{emissive:'#f20b24',emissiveIntensity:1.3}));tail.position.set(x,1.02,2.17);car.add(tail);}
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(1.42,24),new THREE.MeshBasicMaterial({color:'#05070c',transparent:true,opacity:.42}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.02;shadow.scale.set(1,1.85,1);car.add(shadow);
+  car.userData.wheels=wheels;return car;
+}
+const raceReturn=new THREE.Group();raceReturn.position.set(-10,0,104);raceRoot.add(raceReturn);const raceReturnRing=new THREE.Mesh(new THREE.TorusGeometry(.9,.13,10,36),mat('#a9eaff',.22,{emissive:'#8deaff',emissiveIntensity:1.3}));raceReturnRing.position.y=1.35;raceReturn.add(raceReturnRing);const raceReturnBase=box(raceReturn,2,.16,.72,mat('#30243b'),0,.1,0);raceReturnBase.userData.station=raceReturn;const raceReturnLabel=addLabel(raceReturn,'VỀ RẠP NGOÀI TRỜI','#a9eaff');raceReturnLabel.position.set(0,2.55,0);raceReturnLabel.scale.set(4,.68,1);raceReturn.userData.gameId='door';raceReturn.userData.name='CỔNG VỀ RẠP';raceReturn.userData.room='race';raceReturn.userData.targetRoom='cinema';raceReturn.userData.targetPosition={x:100,z:58};raceReturnBase.userData.station=raceReturn;stations.push(raceReturn);
+const raceCar=createCarModel();raceCar.position.set(0,-.14,111);raceCar.rotation.y=Math.PI;raceRoot.add(raceCar);raceCar.userData.gameId='car';raceCar.userData.name='XE ĐUA';raceCar.userData.room='race';const carSign=addLabel(raceCar,'R-01 · XE ĐUA','#d6ff72');carSign.position.set(0,2.35,0);carSign.scale.set(2.4,.58,1);stations.push(raceCar);
+const speedHud=document.createElement('div');speedHud.className='race-speed-hud';speedHud.hidden=true;speedHud.innerHTML='<b>0</b><span>KM/H</span><small>W ga · S phanh · A/D lái · Space drift · E xuống xe</small>';host.append(speedHud);
+const wardrobePanel=document.createElement('aside');wardrobePanel.className='wardrobe-panel';wardrobePanel.hidden=true;wardrobePanel.innerHTML='<header><div><small>TỦ ĐỒ · PHÒNG THAY ĐỒ</small><b>Chọn trang phục</b></div><button type="button" aria-label="Đóng tủ đồ">×</button></header><div class="wardrobe-grid"></div><p>Trang phục được dựng trực tiếp cho avatar 3D và lưu trên thiết bị này.</p>';host.append(wardrobePanel);
 
 const swayingPines=[];
 function addPine(x,z,height,scale=1){
@@ -503,7 +578,7 @@ const blushMat = mat('#f19aa8', 0.65);
 for (const sx of [-0.23, 0.23]) { const blush = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), blushMat); blush.position.set(sx, 1.72, 0.31); blush.scale.set(1.3, 0.65, 0.42); player.add(blush); }
 const nose = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), mat('#f3ae91')); nose.position.set(0, 1.75, 0.37); player.add(nose);
 const smile = new THREE.Mesh(new THREE.TorusGeometry(0.065, 0.012, 6, 14, Math.PI), eyeMat); smile.position.set(0, 1.68, 0.345); smile.rotation.z = Math.PI; player.add(smile);
-const hoodie = new THREE.Mesh(new THREE.SphereGeometry(0.43, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.52), mat('#c5a4ff'));
+const hoodieMat=mat('#c5a4ff',.56),hoodie = new THREE.Mesh(new THREE.SphereGeometry(0.43, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.52), hoodieMat);
 hoodie.position.set(0, 1.43, -0.02); hoodie.scale.set(1.03, 0.85, 0.78); hoodie.castShadow = true; player.add(hoodie);
 // Keep the hood behind the face and body so its rim reads as clothing detail.
 hoodie.position.z = -0.16;
@@ -525,28 +600,65 @@ for (const sx of [-0.17, 0.17]) {
 const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.62, 24), new THREE.MeshBasicMaterial({ color: '#100d19', transparent: true, opacity: 0.34 })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.012; player.add(shadow);
 const playerLight = new THREE.PointLight('#bca2ff', 0.55, 3.5); playerLight.position.set(0, 2.1, 0); player.add(playerLight);
 
+const outfits=[
+  {id:'violet',name:'Neon tím',top:'#9869e8',hood:'#c5a4ff',pants:'#583e78',accent:'#d6ff72',shoes:'#f2d8a1'},
+  {id:'racer',name:'Tay đua',top:'#d84443',hood:'#f2f0e9',pants:'#232a35',accent:'#ffd166',shoes:'#eeeeea'},
+  {id:'ocean',name:'Biển đêm',top:'#227f98',hood:'#50c5d4',pants:'#183d58',accent:'#a8edff',shoes:'#dcecf3'},
+  {id:'forest',name:'Rừng thông',top:'#357a55',hood:'#8bc48a',pants:'#344c3c',accent:'#d6ff72',shoes:'#d8c9aa'},
+  {id:'sunset',name:'Hoàng hôn',top:'#c35d86',hood:'#f29ab0',pants:'#6b365f',accent:'#ffc96e',shoes:'#ffe0b8'},
+  {id:'gold',name:'Đua vàng',top:'#bd8b28',hood:'#f1ca63',pants:'#3a3330',accent:'#fff0b5',shoes:'#f5dfad'},
+  {id:'ice',name:'Băng giá',top:'#789ec8',hood:'#c8e5ff',pants:'#34485f',accent:'#ffffff',shoes:'#e6edf5'},
+  {id:'midnight',name:'Bóng đêm',top:'#42404f',hood:'#7b6f91',pants:'#20212b',accent:'#ff75b5',shoes:'#c6bfd2'}
+];
+let currentOutfitId='violet',drivingCar=false;
+function addOutfitExtras(target){
+  const extras=new THREE.Group();target.add(extras);
+  const trim=mat('#d6ff72',.42,{metalness:.2}),stripe=new THREE.Mesh(new THREE.BoxGeometry(.075,.5,.045),trim);stripe.position.set(0,1.08,.355);stripe.castShadow=true;extras.add(stripe);
+  const scarf=new THREE.Mesh(new THREE.TorusGeometry(.22,.075,8,18),trim);scarf.rotation.x=Math.PI/2;scarf.position.set(0,1.48,.02);scarf.castShadow=true;extras.add(scarf);
+  const cap=new THREE.Mesh(new THREE.SphereGeometry(.405,14,9,0,Math.PI*2,0,Math.PI/2),trim);cap.scale.y=.52;cap.position.set(0,2.15,0);cap.castShadow=true;extras.add(cap);
+  const brim=new THREE.Mesh(new THREE.BoxGeometry(.56,.07,.28),trim);brim.position.set(0,2.14,.26);extras.add(brim);
+  target.userData.outfitExtras={trim,stripe,scarf,cap,brim};
+}
+const outfitCuffs=[];for(const item of arms)for(const child of item.arm.children)if(child.geometry?.type==='CylinderGeometry')outfitCuffs.push(child.material);
+const outfitShoes=player.children.filter(child=>child.geometry?.type==='SphereGeometry'&&child.position.y===.16).map(child=>child.material);
+function paintAvatar(target,id){
+  const outfit=outfits.find(item=>item.id===id)||outfits[0];
+  if(target===player){currentOutfitId=outfit.id;avatarMat.color.set(outfit.top);hoodieMat.color.set(outfit.hood);legMat.color.set(outfit.pants);outfitCuffs.forEach(material=>material.color.set(outfit.accent));outfitShoes.forEach(material=>material.color.set(outfit.shoes));}
+  else if(target.userData.outfitParts){const p=target.userData.outfitParts;p.top.color.set(outfit.top);p.hood.color.set(outfit.hood);p.pants.forEach(material=>material.color.set(outfit.pants));p.shoes.forEach(material=>material.color.set(outfit.shoes));p.cuffs.forEach(material=>material.color.set(outfit.accent));}
+  if(target.userData.outfitExtras){const e=target.userData.outfitExtras;e.trim.color.set(outfit.accent);e.stripe.visible=['racer','ocean','gold','midnight'].includes(outfit.id);e.scarf.visible=['ocean','forest','sunset','ice'].includes(outfit.id);e.cap.visible=e.brim.visible=['racer','gold','midnight'].includes(outfit.id);}
+  target.userData.outfitId=outfit.id;
+}
+addOutfitExtras(player);paintAvatar(player,currentOutfitId);
+function selectOutfit(id){paintAvatar(player,id);const key=window.choigiOnlineUserId?`choigi-outfit-v1:${window.choigiOnlineUserId}`:'choigi-outfit-v1:guest';try{localStorage.setItem(key,id);}catch{};window.dispatchEvent(new CustomEvent('choigi-player-outfit',{detail:{outfit:id}}));wardrobePanel.hidden=true;keys.clear();window.showToast(`Đã thay trang phục: ${outfits.find(item=>item.id===id)?.name||'Neon tím'}`);}
+const outfitGrid=wardrobePanel.querySelector('.wardrobe-grid');for(const outfit of outfits){const button=document.createElement('button');button.type='button';button.dataset.outfit=outfit.id;button.innerHTML=`<i style="--swatch:${outfit.top};--trim:${outfit.accent}"></i><span>${outfit.name}</span>`;button.addEventListener('click',()=>selectOutfit(outfit.id));outfitGrid.append(button);}
+wardrobePanel.querySelector('header button').addEventListener('click',()=>{wardrobePanel.hidden=true;keys.clear();});
+window.addEventListener('choigi-user-ready',event=>{const uid=event.detail?.uid;if(!uid)return;let saved='violet';try{saved=localStorage.getItem(`choigi-outfit-v1:${uid}`)||'violet';}catch{}paintAvatar(player,saved);});
+window.addEventListener('choigi-outfit-selected',event=>{if(event.detail?.uid===window.choigiOnlineUserId)paintAvatar(player,event.detail?.outfit);});
+
 // Other signed-in visitors use the same full low-poly avatar silhouette as the local player.
 const remotePlayers=new Map();
 function createRemoteAvatar(uid,data){
   const avatar=new THREE.Group();avatar.userData.arms=[];avatar.userData.legs=[];
   const palette=['#57b7cf','#e58aae','#78c98a','#e4a55c','#9a83e8','#71a7e8'];
   const hash=[...String(uid)].reduce((sum,char)=>sum+char.charCodeAt(0),0);
-  const shirtMat=mat(palette[hash%palette.length],0.58),skin=mat('#ffd0ae',0.7),hairMatRemote=mat('#49304f',0.82);
+  const shirtMat=mat(palette[hash%palette.length],0.58),skin=mat('#ffd0ae',0.7),hairMatRemote=mat('#49304f',0.82),hoodMat=mat('#c5a4ff',.56),pantsMats=[],shoeMats=[],cuffMats=[];
   const shirt=new THREE.Mesh(new THREE.CapsuleGeometry(0.36,0.5,4,8),shirtMat);shirt.position.y=1.05;shirt.castShadow=true;avatar.add(shirt);
+  const hood=new THREE.Mesh(new THREE.SphereGeometry(.43,12,9,0,Math.PI*2,0,Math.PI*.52),hoodMat);hood.position.set(0,1.43,-.16);hood.scale.set(1.03,.85,.78);avatar.add(hood);
   const head=new THREE.Mesh(new THREE.SphereGeometry(0.36,14,12),skin);head.position.y=1.82;head.castShadow=true;avatar.add(head);
   const hairCap=new THREE.Mesh(new THREE.SphereGeometry(0.375,14,9,0,Math.PI*2,0,Math.PI*.53),hairMatRemote);hairCap.position.y=1.94;hairCap.castShadow=true;avatar.add(hairCap);
   for(const side of [-1,1]){
     const ear=new THREE.Mesh(new THREE.SphereGeometry(0.095,9,8),skin);ear.position.set(side*.35,1.78,.015);avatar.add(ear);
     const arm=new THREE.Group();arm.position.set(side*.3,1.37,.025);avatar.add(arm);
     const sleeve=new THREE.Mesh(new THREE.CapsuleGeometry(.125,.27,4,8),shirtMat);sleeve.position.set(side*.08,-.18,0);sleeve.rotation.z=-side*.16;sleeve.castShadow=true;arm.add(sleeve);
-    const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.07,9),mat('#d9c4ff'));cuff.position.set(side*.12,-.35,.02);cuff.rotation.z=-side*.16;arm.add(cuff);
+    const cuffMat=mat('#d9c4ff');cuffMats.push(cuffMat);const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.07,9),cuffMat);cuff.position.set(side*.12,-.35,.02);cuff.rotation.z=-side*.16;arm.add(cuff);
     const forearm=new THREE.Mesh(new THREE.CapsuleGeometry(.078,.17,3,7),skin);forearm.position.set(side*.15,-.47,.03);forearm.rotation.z=-side*.16;forearm.castShadow=true;arm.add(forearm);
     const hand=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),skin);hand.position.set(side*.17,-.62,.065);hand.scale.set(1,.82,.75);hand.castShadow=true;arm.add(hand);
     avatar.userData.arms.push({arm,side});
-    const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.26,3,7),mat('#e5b5cf'));leg.position.set(side*.16,.41,0);leg.castShadow=true;avatar.add(leg);avatar.userData.legs.push(leg);
-    const shoe=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),mat('#f2d8a1'));shoe.position.set(side*.16,.15,.1);shoe.scale.set(1.15,.62,1.4);shoe.castShadow=true;avatar.add(shoe);
+    const pantsMat=mat('#e5b5cf');pantsMats.push(pantsMat);const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.105,.26,3,7),pantsMat);leg.position.set(side*.16,.41,0);leg.castShadow=true;avatar.add(leg);avatar.userData.legs.push(leg);
+    const shoeMat=mat('#f2d8a1');shoeMats.push(shoeMat);const shoe=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),shoeMat);shoe.position.set(side*.16,.15,.1);shoe.scale.set(1.15,.62,1.4);shoe.castShadow=true;avatar.add(shoe);
   }
   const nameTag=addLabel(avatar,String(data.displayName||data.username||'Bạn').slice(0,16),'#d6ff72');nameTag.position.y=2.48;nameTag.scale.set(2.5,.62,1);
+  avatar.userData.outfitParts={top:shirtMat,hood:hoodMat,pants:pantsMats,shoes:shoeMats,cuffs:cuffMats};addOutfitExtras(avatar);paintAvatar(avatar,data.outfit||'violet');
   avatar.userData.target=new THREE.Vector3(Number(data.x)||0,0,Number(data.z)||0);avatar.userData.targetRotation=0;
   scene.add(avatar);avatar.position.copy(avatar.userData.target);
   return avatar;
@@ -560,8 +672,12 @@ window.addEventListener('choigi-online-players',event=>{
     const nextX=Number(data.x)||0,nextZ=Number(data.z)||0,moveX=nextX-avatar.userData.target.x,moveZ=nextZ-avatar.userData.target.z;
     if(Math.hypot(moveX,moveZ)>.035)avatar.userData.targetRotation=Math.atan2(moveX,moveZ);
     avatar.userData.target.set(nextX,0,nextZ);
+    if(data.outfit&&avatar.userData.outfitId!==data.outfit)paintAvatar(avatar,data.outfit);
+    let remoteCar=avatar.userData.remoteCar;
+    if(data.inCar&&!remoteCar){const carColors=['#d84940','#4d9acb','#45a374','#b883d8','#e29240','#d65e8e'],hash=[...String(uid)].reduce((sum,char)=>sum+char.charCodeAt(0),0);remoteCar=createCarModel(carColors[hash%carColors.length]);remoteCar.userData.target=new THREE.Vector3(Number(data.vehicleX)||nextX,0,Number(data.vehicleZ)||nextZ);remoteCar.position.copy(remoteCar.userData.target);scene.add(remoteCar);avatar.userData.remoteCar=remoteCar;}
+    if(remoteCar){remoteCar.visible=Boolean(data.inCar);remoteCar.userData.target.set(Number(data.vehicleX)||nextX,0,Number(data.vehicleZ)||nextZ);remoteCar.userData.targetYaw=Number(data.vehicleYaw)||0;remoteCar.userData.speed=Number(data.speed)||0;}avatar.visible=!data.inCar;
   }
-  for(const [uid,avatar] of remotePlayers)if(!known.has(uid)){scene.remove(avatar);remotePlayers.delete(uid);}
+  for(const [uid,avatar] of remotePlayers)if(!known.has(uid)){scene.remove(avatar);if(avatar.userData.remoteCar)scene.remove(avatar.userData.remoteCar);remotePlayers.delete(uid);}
 });
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -572,6 +688,11 @@ let seated=false;
 let seatedStation=null;
 const playerVelocity=new THREE.Vector2();
 let walkPhase=0;
+const carVelocity=new THREE.Vector2();let carSteer=0,vehicleSpeed=0;
+function exitRaceCar(){
+  const worldPos=raceCar.getWorldPosition(new THREE.Vector3()),side=new THREE.Vector3(1,0,0).applyQuaternion(raceCar.getWorldQuaternion(new THREE.Quaternion()));
+  player.position.set(worldPos.x+side.x*2.3,0,worldPos.z+side.z*2.3);player.visible=true;drivingCar=false;raceCar.userData.drivenByLocal=false;vehicleSpeed=0;carVelocity.set(0,0);speedHud.hidden=true;updateNearby();
+}
 function standFromSeat(){
   if(activeRoom==='cinema'&&seatedStation){
     const chairPosition=seatedStation.getWorldPosition(new THREE.Vector3());
@@ -582,16 +703,17 @@ function standFromSeat(){
   seated=false;seatedStation=null;player.scale.y=1;
 }
 function switchRoom(room){
-  const next=['lounge','left','right','bar','cinema'].includes(room)?room:'lounge';
+  const next=['lounge','left','right','bar','cinema','race'].includes(room)?room:'lounge';
   if(next===activeRoom)return;
   activeRoom=next;
-  const shell=document.querySelector('.room-shell');shell?.classList.remove('bar-mode','left-mode','cinema-mode');
-  if(activeRoom==='cinema')shell?.classList.add('cinema-mode');
+  raceRoot.visible=activeRoom==='race';
+  const shell=document.querySelector('.room-shell');shell?.classList.remove('bar-mode','left-mode','cinema-mode','race-mode');
+  if(activeRoom==='cinema')shell?.classList.add('cinema-mode');if(activeRoom==='race')shell?.classList.add('race-mode');
   projectionFrame.classList.toggle('room-projection-cinema',activeRoom==='cinema');
   seated=false;seatedStation=null;player.scale.y=1;
-  const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],bar:['NIGHT OWL · BAR','Quán bar <span>✦</span>','Nghe nhạc, xem video và ngồi ở quầy bar.'],cinema:['RẠP TRỜI · CHIẾU PHIM','Rạp ngoài trời <span>✦</span>','Chọn ghế, ngồi cùng bạn bè và xem chung trên màn chiếu lớn.']}[activeRoom];
+  const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],bar:['NIGHT OWL · BAR','Quán bar <span>✦</span>','Nghe nhạc, xem video và ngồi ở quầy bar.'],cinema:['RẠP TRỜI · CHIẾU PHIM','Rạp ngoài trời <span>✦</span>','Chọn ghế, ngồi cùng bạn bè và xem chung trên màn chiếu lớn.'],race:['ĐƯỜNG ĐUA · PINE RIDGE','Sân đua đêm <span>✦</span>','Đến xe thể thao màu đỏ để lái. W ga · S phanh · A/D đánh lái · giữ Shift tăng tốc.']}[activeRoom];
   document.querySelector('#roomEyebrow').textContent=copy[0];document.querySelector('#roomHeading').innerHTML=copy[1];document.querySelector('#roomIntro').textContent=copy[2];
-  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> WASD để đi theo hướng camera · Giữ <b>Shift</b> để chạy · Kéo chuột để xoay góc nhìn. Tới ghế nhấn <b>E</b> để ngồi; video chiếu chung từ jukebox sảnh.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
+  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> WASD để đi theo hướng camera · Giữ <b>Shift</b> để chạy · Kéo chuột để xoay góc nhìn. Đi ra sau rạp để tới tủ đồ hoặc đường đua.':activeRoom==='race'?'<span>✦</span> Đường đua rộng phía sau rạp · W ga · S phanh/lùi · A/D lái · giữ Shift tăng tốc · Space phanh tay · E lên/xuống xe. Kéo chuột để xoay camera.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
   projectionHint.innerHTML=activeRoom==='cinema'?'<span>▶</span><b>RẠP NGOÀI TRỜI</b><small>Video chung đang được chiếu từ jukebox sảnh</small>':'<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>';
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
@@ -601,6 +723,12 @@ function openStation(station) {
     return;
   }
   if(!station||station.userData.room!==activeRoom)return;
+  if(station.userData.gameId==='wardrobe'){wardrobePanel.hidden=false;wardrobePanel.querySelectorAll('[data-outfit]').forEach(button=>button.classList.toggle('selected',button.dataset.outfit===currentOutfitId));keys.clear();return;}
+  if(station.userData.gameId==='car'){
+    if(drivingCar){exitRaceCar();return;}
+    if(Math.hypot(player.position.x-raceCar.getWorldPosition(new THREE.Vector3()).x,player.position.z-raceCar.getWorldPosition(new THREE.Vector3()).z)>5){window.showToast('Đi sát xe hơn rồi nhấn E để lái.');return;}
+    drivingCar=true;raceCar.userData.drivenByLocal=true;player.visible=false;carVelocity.set(0,0);vehicleSpeed=0;speedHud.hidden=false;keys.clear();updateNearby();return;
+  }
   if(station.userData.gameId==='jukebox'){
     if(typeof window.openMusicPanel==='function')window.openMusicPanel(activeRoom);
     else window.showToast('Máy phát nhạc chưa tải xong. Hãy tải lại trang một lần nhé.');
@@ -619,6 +747,7 @@ function openStation(station) {
   } else window.openGame(station.userData.gameId);
 }
 function updateNearby() {
+  if(drivingCar){message.textContent='Bạn đang lái xe. W ga · S phanh · A/D lái · Shift tăng tốc · Space drift · E xuống xe.';interact.lastChild.textContent=' Xuống xe';interact.classList.add('can-interact');return;}
   let closest = null, distance = Infinity;
   for (const station of stations.filter(item=>item.userData.room===activeRoom)) {
     const stationPosition=station.getWorldPosition(new THREE.Vector3());
@@ -627,13 +756,13 @@ function updateNearby() {
   }
   nearest = distance < 4 ? closest : null;
   if (nearest) {
-    const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat',door=nearest.userData.gameId==='door';
-    const doorName=nearest.userData.targetRoom==='bar'?'quán bar':nearest.userData.targetRoom==='cinema'?'rạp ngoài trời':'sảnh';
-    message.textContent = door ? `Nhấn E để tới ${doorName}.` : seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? (activeRoom==='bar'?'Jukebox này chỉ phát riêng trong quán bar. Nhấn E để chọn nhạc!':'Jukebox phát chung cho phòng game và rạp ngoài trời. Nhấn E để chọn nhạc!') : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
-    interact.lastChild.textContent = door ? ` Đi tới ${doorName}` : seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
+    const music = nearest.userData.gameId === 'jukebox', seat=nearest.userData.gameId==='seat',door=nearest.userData.gameId==='door',wardrobeHere=nearest.userData.gameId==='wardrobe',carHere=nearest.userData.gameId==='car';
+    const doorName=nearest.userData.targetRoom==='bar'?'quán bar':nearest.userData.targetRoom==='cinema'?'rạp ngoài trời':nearest.userData.targetRoom==='race'?'sân đua':'sảnh';
+    message.textContent = door ? `Nhấn E để tới ${doorName}.` : wardrobeHere?'Tủ đồ ở đây. Nhấn E để xem và thay 8 bộ trang phục.':carHere?'Xe thể thao sẵn sàng. Nhấn E để lái.':seat ? (seated?'Bạn đang ngồi thư giãn. Nhấn E để đứng dậy.':`Bạn đang gần ${nearest.userData.name}. Nhấn E để ngồi.`) : music ? (activeRoom==='bar'?'Jukebox này chỉ phát riêng trong quán bar. Nhấn E để chọn nhạc!':'Jukebox phát chung cho phòng game và rạp ngoài trời. Nhấn E để chọn nhạc!') : `Bạn đang ở máy ${nearest.userData.name}. Nhấn E để chơi!`;
+    interact.lastChild.textContent = door ? ` Đi tới ${doorName}` : wardrobeHere?' Mở tủ đồ':carHere?' Lái xe':seat ? (seated?' Đứng dậy':' Ngồi xuống') : music ? ' Mở máy phát chung' : ` Chơi ${nearest.userData.name}`;
     interact.classList.add('can-interact');
   } else {
-    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':activeRoom==='bar'?'Đi tới jukebox riêng của bar hoặc ghế để tương tác.':activeRoom==='cinema'?'Đi tới một chiếc ghế để ngồi xem phim cùng mọi người.':'Đi lại gần một máy game để bắt đầu chơi.';
+    message.textContent = activeRoom==='lounge'?'Đi tới jukebox, ghế sofa hoặc bàn ghế để tương tác.':activeRoom==='bar'?'Đi tới jukebox riêng của bar hoặc ghế để tương tác.':activeRoom==='cinema'?'Đi tới ghế xem phim; khu tủ đồ và lối sang sân đua ở phía sau rạp.':activeRoom==='race'?'Đi tới xe thể thao ở lối vào để bắt đầu lái.':'Đi lại gần một máy game để bắt đầu chơi.';
     interact.lastChild.textContent = ' Chơi ở đây';
     interact.classList.remove('can-interact');
   }
@@ -656,7 +785,7 @@ function pointerPosition(event) {
   if(screenHit&&(!hits[0]||screenHit.distance<hits[0].distance))return null;
   return hits.map(h => h.object.userData.station || h.object.parent).find(o => o?.userData?.gameId) || null;
 }
-renderer.domElement.addEventListener('pointermove', e => { if(cameraDragging)return; renderer.domElement.style.cursor = activeRoom==='cinema'?'grab':pointerPosition(e) ? 'pointer' : 'default'; });
+renderer.domElement.addEventListener('pointermove', e => { if(cameraDragging)return; renderer.domElement.style.cursor = ['cinema','race'].includes(activeRoom)?'grab':pointerPosition(e) ? 'pointer' : 'default'; });
 renderer.domElement.addEventListener('click', e => { const station = pointerPosition(e); if (station) openStation(station); });
 
 function tryInteract() {
@@ -664,6 +793,7 @@ function tryInteract() {
     if (socialOverlay) socialOverlay.hidden = false;
     return;
   }
+  if(drivingCar){exitRaceCar();return;}
   if (nearest) openStation(nearest);
   else window.showToast('Đi tới gần một máy game, máy nhạc hoặc ghế rồi nhấn E nhé!');
 }
@@ -690,14 +820,14 @@ document.querySelector('#shareRoomBtn')?.addEventListener('click', () => {
   else navigator.clipboard?.writeText(location.href).then(() => window.showToast('Đã sao chép link phòng!'));
 });
 document.addEventListener('keydown', e => {
-  if (modal.classList.contains('open') || !musicOverlay.hidden || (socialOverlay && !socialOverlay.hidden) || (socialDrawer && !socialDrawer.hidden)) return;
-  const k = e.key.toLowerCase();
+  if (modal.classList.contains('open') || !musicOverlay.hidden || !wardrobePanel.hidden || (socialOverlay && !socialOverlay.hidden) || (socialDrawer && !socialDrawer.hidden)) return;
+  const k = e.key===' '?'space':e.key.toLowerCase();
   if (window.choigiOnlineReady !== true && ['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter'].includes(k)) {
     e.preventDefault();
     if (socialOverlay) socialOverlay.hidden = false;
     return;
   }
-  if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter','shift'].includes(k)) e.preventDefault();
+  if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter','shift','space'].includes(k)) e.preventDefault();
   if (k === 'e' || k === 'enter') tryInteract(); else keys.add(k);
 });
 document.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
@@ -719,9 +849,10 @@ function animate() {
   const inputActive=dx!==0||dz!==0;
   // In the cinema, WASD is relative to the camera: W advances, S reverses,
   // and A/D strafe without changing the camera angle.
-  if(activeRoom==='cinema'&&inputActive){const strafe=dx,forward=-dz,c=Math.cos(cinemaCameraYaw),s=Math.sin(cinemaCameraYaw);dx=strafe*c-forward*s;dz=-strafe*s-forward*c;}
-  const canMove=window.choigiOnlineReady===true&&!modal.classList.contains('open')&&musicOverlay.hidden&&(!socialOverlay||socialOverlay.hidden)&&(!socialDrawer||socialDrawer.hidden);
-  if(canMove&&inputActive){
+  if(['cinema','race'].includes(activeRoom)&&inputActive){const strafe=dx,forward=-dz,c=Math.cos(cinemaCameraYaw),s=Math.sin(cinemaCameraYaw);dx=strafe*c-forward*s;dz=-strafe*s-forward*c;}
+  const canMove=window.choigiOnlineReady===true&&!modal.classList.contains('open')&&musicOverlay.hidden&&wardrobePanel.hidden&&(!socialOverlay||socialOverlay.hidden)&&(!socialDrawer||socialDrawer.hidden);
+  if(drivingCar){dx=0;dz=0;}
+  else if(canMove&&inputActive){
     if(seated)standFromSeat();
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
   } else { dx=0;dz=0; }
@@ -740,34 +871,51 @@ function animate() {
     circleHitsRect(x,z,wall-0.21,wall+0.21,-9,-1.4)||
     circleHitsRect(x,z,wall-0.21,wall+0.21,1.4,9));
   const blocked=(x,z)=>obstacles.some(o=>o.minX!==undefined?circleHitsRect(x,z,o.minX,o.maxX,o.minZ,o.maxZ):Math.hypot(x-o.x,z-o.z)<o.r+radius)||hitsDivider(x,z);
-  const xMin=activeRoom==='bar'?30.1:activeRoom==='cinema'?64.3:-14,xMax=activeRoom==='bar'?49.9:activeRoom==='cinema'?135.7:14;
-  const zMin=activeRoom==='cinema'?-15.5:-8,zMax=activeRoom==='cinema'?31.5:8;
+  const xMin=activeRoom==='bar'?30.1:['cinema','race'].includes(activeRoom)?35:-14,xMax=activeRoom==='bar'?49.9:['cinema','race'].includes(activeRoom)?165:14;
+  const zMin=activeRoom==='cinema'?-15.5:activeRoom==='race'?68:-8,zMax=activeRoom==='cinema'?64.2:activeRoom==='race'?260:8;
   const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,xMin,xMax);
   const nextZ=THREE.MathUtils.clamp(player.position.z+playerVelocity.y*dt,zMin,zMax);
   if(!blocked(nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
   if(!blocked(player.position.x,nextZ))player.position.z=nextZ;else playerVelocity.y=0;
   if(['lounge','left','right'].includes(activeRoom))switchRoom(player.position.x < -5.8 ? 'left' : player.position.x > 5.8 ? 'right' : 'lounge');
+  if(drivingCar&&activeRoom==='race'&&canMove){
+    let forward=new THREE.Vector2(-Math.sin(raceCar.rotation.y),-Math.cos(raceCar.rotation.y)),side=new THREE.Vector2(Math.cos(raceCar.rotation.y),-Math.sin(raceCar.rotation.y));const previousLateral=carVelocity.dot(side);
+    const throttle=(keys.has('w')||keys.has('arrowup'))?1:0,brake=(keys.has('s')||keys.has('arrowdown'))?1:0,steer=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0),handbrake=keys.has('space');
+    if(throttle)vehicleSpeed+= (vehicleSpeed<0?34:22)*dt;
+    if(brake)vehicleSpeed+= (vehicleSpeed>0?-34: -13)*dt;
+    const offRoad=Math.hypot(raceCar.position.x/ovalA,(raceCar.position.z-ovalCenterZ)/ovalB),nearApproach=raceCar.position.z>64&&raceCar.position.z<149&&Math.abs(raceCar.position.x)<10,onRoad=nearApproach||(Math.abs(offRoad-1)*Math.min(ovalA,ovalB)<roadHalf+4);
+    if(!throttle&&!brake)vehicleSpeed*=Math.max(0,1-(onRoad?1.25:3.5)*dt);
+    if(handbrake)vehicleSpeed*=Math.max(0,1-1.9*dt);
+    const maxVehicleSpeed=(keys.has('shift')?53:42)*(onRoad?1:.37);vehicleSpeed=THREE.MathUtils.clamp(vehicleSpeed,-12,maxVehicleSpeed);
+    if(Math.abs(vehicleSpeed)<.08)vehicleSpeed=0;
+    if(Math.abs(vehicleSpeed)>.35)raceCar.rotation.y+=steer*dt*(.24+Math.min(1.1,Math.abs(vehicleSpeed)*.018))*Math.sign(vehicleSpeed)*(handbrake?1.35:1);
+    forward.set(-Math.sin(raceCar.rotation.y),-Math.cos(raceCar.rotation.y));side.set(Math.cos(raceCar.rotation.y),-Math.sin(raceCar.rotation.y));const grip=handbrake?.55:(onRoad?5.5:1.3),lateral=previousLateral*Math.exp(-grip*dt);carVelocity.copy(forward).multiplyScalar(vehicleSpeed).addScaledVector(side,lateral);
+    raceCar.position.x=THREE.MathUtils.clamp(raceCar.position.x+carVelocity.x*dt,-92,92);raceCar.position.z=THREE.MathUtils.clamp(raceCar.position.z+carVelocity.y*dt,64,270);
+    raceCar.position.y=-.14+Math.min(.075,Math.abs(lateral)*.004);for(const wheel of raceCar.userData.wheels){wheel.rotation.x+=vehicleSpeed*dt/.48;if(wheel.position.z<0)wheel.rotation.y=steer*.3;}
+    speedHud.querySelector('b').textContent=String(Math.round(Math.abs(vehicleSpeed)*3.6));
+  }
   const speed=Math.hypot(playerVelocity.x,playerVelocity.y),moving=speed>0.22;
   if(moving){const wanted=Math.atan2(playerVelocity.x,playerVelocity.y),turn=Math.atan2(Math.sin(wanted-player.rotation.y),Math.cos(wanted-player.rotation.y));player.rotation.y+=turn*(1-Math.exp(-13*dt));}
   walkPhase+=speed*dt*3.4;
-  const thirdPerson=activeRoom==='cinema';
+  const thirdPerson=['cinema','race'].includes(activeRoom);
   if(thirdPerson){
-    const followDistance=16,lookAhead=6.5,horizontal=followDistance*Math.cos(cinemaCameraPitch),forwardX=-Math.sin(cinemaCameraYaw),forwardZ=-Math.cos(cinemaCameraYaw);
-    cameraGoal.set(player.position.x-forwardX*horizontal,player.position.y+followDistance*Math.sin(cinemaCameraPitch),player.position.z-forwardZ*horizontal);
-    lookGoal.set(player.position.x+forwardX*lookAhead,player.position.y+2.0,player.position.z+forwardZ*lookAhead);
+    const focus=drivingCar?raceCar.getWorldPosition(new THREE.Vector3()):player.position;
+    const followDistance=drivingCar?20:16,lookAhead=drivingCar?9:6.5,horizontal=followDistance*Math.cos(cinemaCameraPitch),forwardX=drivingCar?-Math.sin(raceCar.rotation.y)-Math.sin(cinemaCameraYaw)*.48:-Math.sin(cinemaCameraYaw),forwardZ=drivingCar?-Math.cos(raceCar.rotation.y)-Math.cos(cinemaCameraYaw)*.48:-Math.cos(cinemaCameraYaw);
+    cameraGoal.set(focus.x-forwardX*horizontal,focus.y+followDistance*Math.sin(cinemaCameraPitch),focus.z-forwardZ*horizontal);
+    lookGoal.set(focus.x+forwardX*lookAhead,focus.y+(drivingCar?1.2:2.0),focus.z+forwardZ*lookAhead);
   }else{
     cameraGoal.set(player.position.x,player.position.y+14.2,player.position.z+22.55);
     lookGoal.set(player.position.x,player.position.y+2.1,player.position.z-3.45);
   }
   const cameraBlend=1-Math.exp(-4.2*dt);
   camera.position.lerp(cameraGoal,cameraBlend);cameraLook.lerp(lookGoal,cameraBlend);camera.lookAt(cameraLook);
-  if(renderer.domElement.style.cursor!=='grabbing')renderer.domElement.style.cursor=activeRoom==='cinema'?'grab':'default';
+  if(renderer.domElement.style.cursor!=='grabbing')renderer.domElement.style.cursor=['cinema','race'].includes(activeRoom)?'grab':'default';
   const t = clock.elapsedTime;
-  scene.background.set(activeRoom==='cinema'?'#061126':'#252033');
-  scene.fog.color.set(activeRoom==='cinema'?'#061126':'#252033');
-  scene.fog.near=activeRoom==='cinema'?80:25;scene.fog.far=activeRoom==='cinema'?155:45;
-  roomHemisphere.intensity=activeRoom==='cinema'?.42:2.0;
-  keyLight.intensity=activeRoom==='cinema'?.2:3.3;
+  const isOutdoors=['cinema','race'].includes(activeRoom);scene.background.set(isOutdoors?'#061126':'#252033');
+  scene.fog.color.set(isOutdoors?'#061126':'#252033');
+  scene.fog.near=isOutdoors?80:25;scene.fog.far=isOutdoors?155:45;
+  roomHemisphere.intensity=isOutdoors?.42:2.0;
+  keyLight.intensity=isOutdoors?.2:3.3;
   cinemaMoonLight.intensity=.65+.12*Math.sin(t*.42);
   cinemaMoon.material.emissiveIntensity=.32+.05*Math.sin(t*.42);
   for(const item of animatedDecor){if(item.type==='leaf')item.mesh.rotation.z=item.base+Math.sin(t*1.1+item.phase)*0.075;else if(item.type==='record')item.mesh.rotation.z=t*1.7;else if(item.type==='neon')item.mesh.material.emissiveIntensity=0.75+Math.sin(t*2+item.phase)*0.35;else if(item.type==='pulseLight')item.light.intensity=0.28+Math.max(0,Math.sin(t*2+item.phase))*0.55;else if(item.type==='portal'){item.mesh.rotation.z=t*0.16;item.mesh.scale.setScalar(1+Math.sin(t*2.2+item.phase)*0.055);}else if(item.type==='barBeam')item.light.intensity=0.7+Math.max(0,Math.sin(t*2+item.phase))*1.8;else if(item.type==='cinemaSpot')item.light.intensity=1.35+Math.max(0,Math.sin(t*1.3+item.phase))*1.1;else if(item.type==='campfire'){item.mesh.scale.y=.78+.16*Math.sin(t*8+item.phase);item.secondary.rotation.y=t*1.7;item.light.intensity=1.6+Math.random()*.65;}}
@@ -781,6 +929,7 @@ function animate() {
   legs.forEach((leg, i) => { leg.rotation.x = moving ? Math.sin(walkPhase + i * Math.PI) * 0.38 : THREE.MathUtils.damp(leg.rotation.x,0,9,dt); });
   arms.forEach(({arm,side}) => { arm.rotation.x = moving ? Math.sin(walkPhase + (side > 0 ? Math.PI : 0)) * 0.3 : THREE.MathUtils.damp(arm.rotation.x,0,8,dt); });
   for(const avatar of remotePlayers.values()){
+    const otherCar=avatar.userData.remoteCar;if(otherCar?.visible){otherCar.position.lerp(otherCar.userData.target,1-Math.exp(-5.5*dt));const turn=Math.atan2(Math.sin(otherCar.userData.targetYaw-otherCar.rotation.y),Math.cos(otherCar.userData.targetYaw-otherCar.rotation.y));otherCar.rotation.y+=turn*(1-Math.exp(-6*dt));for(const wheel of otherCar.userData.wheels)wheel.rotation.x+=Number(otherCar.userData.speed||0)*dt/.48;}
     const distance=avatar.position.distanceTo(avatar.userData.target);
     avatar.position.lerp(avatar.userData.target,1-Math.exp(-8.5*dt));
     const turn=Math.atan2(Math.sin(avatar.userData.targetRotation-avatar.rotation.y),Math.cos(avatar.userData.targetRotation-avatar.rotation.y));avatar.rotation.y+=turn*(1-Math.exp(-9*dt));
@@ -794,7 +943,7 @@ function animate() {
     if (screen) screen.material.emissiveIntensity = 0.7 + Math.sin(t * 2.2 + station.position.x) * 0.16;
   }
   updateNearby();
-  if(performance.now()-lastPositionPublish>100){lastPositionPublish=performance.now();window.dispatchEvent(new CustomEvent('choigi-player-position',{detail:{x:player.position.x,z:player.position.z}}));}
+  if(performance.now()-lastPositionPublish>100){lastPositionPublish=performance.now();const carWorld=drivingCar?raceCar.getWorldPosition(new THREE.Vector3()):null;window.dispatchEvent(new CustomEvent('choigi-player-position',{detail:{x:carWorld?.x??player.position.x,z:carWorld?.z??player.position.z,outfit:currentOutfitId,inCar:drivingCar,vehicleX:carWorld?.x??raceCar.getWorldPosition(new THREE.Vector3()).x,vehicleZ:carWorld?.z??raceCar.getWorldPosition(new THREE.Vector3()).z,vehicleYaw:raceCar.rotation.y,speed:vehicleSpeed}}));}
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
   const projectScreen=(screen,w,h,frame,enabled,planeZ=.23)=>{

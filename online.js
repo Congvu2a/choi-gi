@@ -17,10 +17,12 @@ const roomChatToggle = $('#roomChatToggle');
 let auth = null, db = null, user = null, profile = null, profileSetupPromise = null;
 window.choigiOnlineReady = false;
 window.choigiOnlineUserId = null;
-let authMode = 'login', currentRoom = 'lounge', lastPosition = { x: 0, y: 0, z: 3.45, seated: false, rotation: 0 };
+let authMode = 'login', currentRoom = 'lounge', lastPosition = { x: 0, z: 3.45 };
 let stopRoomListener = null, stopFriendListener = null, stopRequestListener = null, stopChatListener = null;
 let stopMusicListeners = [];
 let presenceRef = null, presenceWorld = null, positionWriteAt = 0;
+let presenceExtras={outfit:'violet',inCar:false,vehicleX:0,vehicleZ:0,vehicleYaw:0,speed:0};
+function presenceRecord(){return {uid:user.uid,username:profile.username,displayName:profile.displayName,room:currentRoom,x:lastPosition.x,z:lastPosition.z,...presenceExtras,updatedAt:serverTimestamp()};}
 
 function showError(error) {
   const messages = {
@@ -245,7 +247,7 @@ async function updatePresence() {
     presenceWorld = key;
     await onDisconnect(presenceRef).remove();
   }
-  await set(presenceRef, { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, y: lastPosition.y, z: lastPosition.z, seated: lastPosition.seated, rotation: lastPosition.rotation, updatedAt: serverTimestamp() });
+  await set(presenceRef, presenceRecord());
   stopRoomListener?.();
   stopRoomListener = onValue(ref(db, `rooms/${key}/players`), snapshot => {
     const players = snapshot.val() || {};
@@ -261,13 +263,19 @@ window.addEventListener('choigi-room-changed', event => {
 });
 window.addEventListener('choigi-player-position', event => {
   if (!user || !profile) return;
-  const now = performance.now(),nextPosition={x:event.detail.x,y:Number(event.detail.y)||0,z:event.detail.z,seated:Boolean(event.detail.seated),rotation:Number(event.detail.rotation)||0};
+  const now = performance.now(),nextPosition={x:event.detail.x,z:event.detail.z};
   const moved=Math.hypot(nextPosition.x-lastPosition.x,nextPosition.z-lastPosition.z)>.035;
-  const poseChanged=nextPosition.seated!==lastPosition.seated||Math.abs(nextPosition.y-lastPosition.y)>.06||Math.abs(nextPosition.rotation-lastPosition.rotation)>.12;
-  if(!poseChanged&&now-positionWriteAt<(moved?80:1200))return;
+  presenceExtras={outfit:String(event.detail.outfit||presenceExtras.outfit||'violet'),inCar:Boolean(event.detail.inCar),vehicleX:Number(event.detail.vehicleX)||0,vehicleZ:Number(event.detail.vehicleZ)||0,vehicleYaw:Number(event.detail.vehicleYaw)||0,speed:Number(event.detail.speed)||0};
+  if(now-positionWriteAt<(moved?80:1200))return;
   positionWriteAt=now;lastPosition=nextPosition;
   const key = worldKey(currentRoom);
-  set(ref(db, `rooms/${key}/players/${user.uid}`), { uid: user.uid, username: profile.username, displayName: profile.displayName, room: currentRoom, x: lastPosition.x, y: lastPosition.y, z: lastPosition.z, seated: lastPosition.seated, rotation: lastPosition.rotation, updatedAt: serverTimestamp() }).catch(() => {});
+  set(ref(db, `rooms/${key}/players/${user.uid}`), presenceRecord()).catch(() => {});
+});
+window.addEventListener('choigi-user-ready',event=>{
+  const uid=event.detail?.uid;if(!uid)return;let outfit='violet';try{outfit=localStorage.getItem(`choigi-outfit-v1:${uid}`)||'violet';}catch{}presenceExtras.outfit=outfit;
+});
+window.addEventListener('choigi-player-outfit',event=>{
+  presenceExtras.outfit=String(event.detail?.outfit||'violet');if(user&&profile&&presenceRef){lastPosition.x=Number(lastPosition.x)||0;lastPosition.z=Number(lastPosition.z)||0;set(presenceRef,presenceRecord()).catch(()=>{});}
 });
 
 function renderPresenceEmpty() {
@@ -394,6 +402,7 @@ if (!firebaseReady) {
       }
       status.textContent = 'Đã đăng nhập · sảnh đang kết nối.';
       window.choigiOnlineReady = true;
+      window.dispatchEvent(new CustomEvent('choigi-user-ready',{detail:{uid:user.uid}}));
       showProfile(); watchSocialData();
       watchSharedMusic();
       stopChatListener = onValue(query(ref(db, 'lobbyChat'), limitToLast(60)), renderMessages);
