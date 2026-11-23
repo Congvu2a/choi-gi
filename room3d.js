@@ -8,6 +8,7 @@ const musicOverlay = document.querySelector('#musicOverlay');
 const socialOverlay = document.querySelector('#socialOverlay');
 const socialDrawer = document.querySelector('#socialDrawer');
 let cinemaScreenGroup, cinemaVideoSurface, cinemaScreenLight=null;
+let sharedVideoActive=false;
 if (!host) throw new Error('Không tìm thấy khu vực phòng game.');
 
 const scene = new THREE.Scene();
@@ -92,7 +93,7 @@ const projectionShield=document.createElement('div');projectionShield.className=
 Object.assign(projectionFrame.style,{pointerEvents:'auto'});musicPlayer.style.pointerEvents='none';musicPlayer.tabIndex=-1;Object.assign(projectionShield.style,{position:'absolute',inset:'0',zIndex:'5',background:'transparent',pointerEvents:'auto',touchAction:'none'});
 const musicPlayerWrap = document.querySelector('.music-player-wrap');
 if (musicPlayerWrap) { const note=document.createElement('div'); note.className='music-project-note'; note.textContent='Video đang được chiếu trên màn hình lớn trong phòng.'; musicPlayerWrap.replaceChildren(note); }
-window.addEventListener('choigi-video-active', e => {const active=e.detail?.active,room=e.detail?.room;const isBar=room==='bar';if(isBar){if(typeof barProjectionHint!=='undefined')barProjectionHint.hidden=Boolean(active);if(typeof barVideoSurface!=='undefined')barVideoSurface.material.color.set(active?'#090a12':'#301338');}else{projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');if(cinemaVideoSurface)cinemaVideoSurface.material.color.set(active?'#090a12':'#10131c');if(cinemaScreenLight)cinemaScreenLight.intensity=active?11:0;}});
+window.addEventListener('choigi-video-active', e => {const active=e.detail?.active,room=e.detail?.room;const isBar=room==='bar';if(isBar){if(typeof barProjectionHint!=='undefined')barProjectionHint.hidden=Boolean(active);if(typeof barVideoSurface!=='undefined')barVideoSurface.material.color.set(active?'#090a12':'#301338');}else{sharedVideoActive=Boolean(active);projectionHint.hidden=Boolean(active);videoScreenSurface.material.color.set(active?'#090a12':'#12101b');if(cinemaVideoSurface)cinemaVideoSurface.material.color.set(active?'#090a12':'#10131c');if(cinemaScreenLight)cinemaScreenLight.intensity=active?11:0;}});
 
 // Layered oval rug, stitched border, and low central table.
 const rug = new THREE.Mesh(new THREE.CylinderGeometry(4.8, 4.8, 0.08, 64), mat('#a66584'));
@@ -975,7 +976,9 @@ function animate() {
   projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,activeRoom==='lounge');
   const cinemaCameraLocal=cinemaScreenGroup.worldToLocal(camera.position.clone());
   cinemaScreenGroup.visible=activeRoom==='cinema'&&cinemaCameraLocal.z>.08;
-  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema'&&cinemaScreenGroup.visible,.4,true);
+  // Do not render the detached HTML placeholder over the physical 3D screen.
+  // The video overlay is only needed while a shared video is actually playing.
+  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema'&&cinemaScreenGroup.visible&&sharedVideoActive,.4,true);
   projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,inBar);
   renderer.render(scene, camera);
 }
