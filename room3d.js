@@ -180,13 +180,12 @@ function makeLobbyPortal(x,z,label,color,targetRoom,targetPosition){
   return portal;
 }
 // Two separate gates in the lounge lead to the outdoor cinema and the bar.
-makeLobbyPortal(-2.35,6.85,'RẠP NGOÀI TRỜI','#a9eaff','cinema',{x:80,z:22});
+makeLobbyPortal(-2.35,6.85,'RẠP NGOÀI TRỜI','#a9eaff','cinema',{x:100,z:22});
 makeLobbyPortal(2.35,6.85,'CỔNG · QUÁN BAR','#ff91cf','bar',{x:40,z:3.45});
 
 // Open-air cinema garden: a wide timber deck, large shared screen, tiered
 // tables with usable seats, warm lights and animated trees/fireflies.
-const cinemaRoot=new THREE.Group();cinemaRoot.name='rap-chieu-ngoai-troi';cinemaRoot.position.set(80,0,0);scene.add(cinemaRoot);
-const cinemaObstacleStart=obstacles.length,cinemaStationStart=stations.length;
+const cinemaRoot=new THREE.Group();cinemaRoot.name='rap-chieu-ngoai-troi';cinemaRoot.position.set(100,0,0);scene.add(cinemaRoot);
 // A deliberately sparse, evenly distributed sky across the full 360° dome.
 const skyPositions=[];
 const starCount=38,goldenAngle=Math.PI*(3-Math.sqrt(5));
@@ -199,32 +198,32 @@ const skyStars=new THREE.Points(skyGeometry,new THREE.PointsMaterial({color:'#d8
 const cinemaMoon=new THREE.Mesh(new THREE.SphereGeometry(2.1,24,18),new THREE.MeshStandardMaterial({color:'#fff3ce',emissive:'#ffe7a6',emissiveIntensity:.38,roughness:.9}));cinemaMoon.position.set(-15,15,-22);cinemaRoot.add(cinemaMoon);
 const cinemaMoonHalo=new THREE.Mesh(new THREE.SphereGeometry(3.5,18,14),new THREE.MeshBasicMaterial({color:'#ffe1a0',transparent:true,opacity:.04,side:THREE.BackSide,depthWrite:false}));cinemaMoonHalo.position.copy(cinemaMoon.position);cinemaRoot.add(cinemaMoonHalo);
 const cinemaMoonLight=new THREE.PointLight('#ffe4ae',.75,48);cinemaMoonLight.position.set(-15,14,-19);cinemaRoot.add(cinemaMoonLight);
-// Extend the deck only behind the audience: front edge stays by the screen,
-// rear edge reaches twice as far to make room for the fire-pit garden.
-const cinemaWater=new THREE.Mesh(new THREE.PlaneGeometry(180,220),new THREE.MeshStandardMaterial({color:'#12343a',roughness:.38,metalness:.12,emissive:'#07171a',emissiveIntensity:.16}));
-cinemaWater.rotation.x=-Math.PI/2;cinemaWater.position.set(0,-.49,8);cinemaWater.receiveShadow=true;cinemaRoot.add(cinemaWater);
-box(cinemaRoot,36,.42,48,mat('#493741',.82),0,-.24,8);
-for(let z=-15;z<=31;z+=.72)box(cinemaRoot,35.6,.018,.025,mat(z%2?'#725149':'#654941',.82),0,-.012,z,false);
-for(const [x,z,w,d] of [[0,-15.72,36,.22],[0,32.72,36,.22],[-17.72,8,.22,47.4],[17.72,8,.22,47.4]])box(cinemaRoot,w,.2,d,mat('#624638',.62),x,.02,z,false);
-box(cinemaRoot,21,.42,2.4,mat('#382a38'),0,.08,-13.25);
-box(cinemaRoot,20.3,.12,2.2,mat('#92646f',.45),0,.34,-13.25,false);
+// A larger deck extends sideways and deep behind the audience while keeping
+// every prop at its natural proportions.
+const cinemaWater=new THREE.Mesh(new THREE.PlaneGeometry(84,112),new THREE.MeshStandardMaterial({color:'#12343a',roughness:.38,metalness:.12,emissive:'#07171a',emissiveIntensity:.16}));
+cinemaWater.rotation.x=-Math.PI/2;cinemaWater.position.set(0,-.49,16);cinemaWater.receiveShadow=true;cinemaRoot.add(cinemaWater);
+box(cinemaRoot,72,.42,96,mat('#493741',.82),0,-.24,16);
+for(let z=-31;z<=63;z+=.72)box(cinemaRoot,71.6,.018,.025,mat(z%2?'#725149':'#654941',.82),0,-.012,z,false);
+for(const [x,z,w,d] of [[0,-32.72,72,.22],[0,64.72,72,.22],[-35.72,16,.22,95.4],[35.72,16,.22,95.4]])box(cinemaRoot,w,.2,d,mat('#624638',.62),x,.02,z,false);
+box(cinemaRoot,25,.42,2.4,mat('#382a38'),0,.08,-13.25);
+box(cinemaRoot,24.3,.12,2.2,mat('#92646f',.45),0,.34,-13.25,false);
 cinemaScreenGroup=new THREE.Group();cinemaScreenGroup.position.set(0,7,-14.55);cinemaRoot.add(cinemaScreenGroup);
-roundedPanel(cinemaScreenGroup,17.8,10.2,.52,mat('#19151f',.35,{metalness:.32}),0,0,0,.5);
-roundedPanel(cinemaScreenGroup,17.15,9.58,.1,mat('#614651',.46,{metalness:.22}),0,0,.3,.36);
-cinemaVideoSurface=box(cinemaScreenGroup,16.62,9.04,.04,mat('#070a10',.4),0,0,.37,false);
+roundedPanel(cinemaScreenGroup,22.1,12.55,.52,mat('#19151f',.35,{metalness:.32}),0,0,0,.5);
+roundedPanel(cinemaScreenGroup,21.55,12.1,.1,mat('#614651',.46,{metalness:.22}),0,0,.3,.36);
+cinemaVideoSurface=box(cinemaScreenGroup,21,11.82,.04,mat('#070a10',.4),0,0,.37,false);
 // A fixed outer housing, layered rails and fasteners make the projection feel
 // mounted to the truss rather than floating in front of the scenery.
-roundedPanel(cinemaScreenGroup,18.55,10.85,.68,mat('#111722',.46,{metalness:.5}),0,0,-.38,.52);
-for(const y of [-5.28,5.28])box(cinemaScreenGroup,18.35,.22,.62,mat('#343743',.4,{metalness:.56}),0,y,.42);
-for(const x of [-9.08,9.08])box(cinemaScreenGroup,.22,10.35,.62,mat('#343743',.4,{metalness:.56}),x,0,.42);
-for(const x of [-8.72,8.72])for(const y of [-4.92,4.92]){const bolt=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),mat('#b08a61',.36,{metalness:.65}));bolt.position.set(x,y,.76);cinemaScreenGroup.add(bolt);}
+roundedPanel(cinemaScreenGroup,23.1,13.3,.68,mat('#111722',.46,{metalness:.5}),0,0,-.38,.52);
+for(const y of [-6.45,6.45])box(cinemaScreenGroup,22.9,.22,.62,mat('#343743',.4,{metalness:.56}),0,y,.42);
+for(const x of [-11.3,11.3])box(cinemaScreenGroup,.22,12.7,.62,mat('#343743',.4,{metalness:.56}),x,0,.42);
+for(const x of [-10.85,10.85])for(const y of [-6,6]){const bolt=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),mat('#b08a61',.36,{metalness:.65}));bolt.position.set(x,y,.76);cinemaScreenGroup.add(bolt);}
 cinemaScreenLight=new THREE.SpotLight('#c5dcff',0,56,.78,.7,1.15);cinemaScreenLight.position.set(0,-1.7,.72);cinemaScreenLight.target.position.set(0,-6.2,8.5);cinemaScreenGroup.add(cinemaScreenLight,cinemaScreenLight.target);
-obstacles.push({minX:71,maxX:89,minZ:-14.92,maxZ:-14.08});
-for(const [x,color] of [[-7.8,'#8ddfff'],[7.8,'#ff9fc5']]){
+obstacles.push({minX:88.2,maxX:111.8,minZ:-14.92,maxZ:-14.08});
+for(const [x,color] of [[-11.8,'#8ddfff'],[11.8,'#ff9fc5']]){
   const beam=box(cinemaRoot,.08,5.2,.08,mat('#303440',.48,{metalness:.24}),x,2.88,-13.48,false);
   const spot=new THREE.SpotLight(color,2.1,18,.28,.65,1.25);spot.position.set(x,5.55,-12.7);spot.target.position.set(x*.45,0,-5);cinemaRoot.add(spot,spot.target);animatedDecor.push({type:'cinemaSpot',light:spot,phase:x});
 }
-const cinemaSign=addLabel(cinemaRoot,'OPEN AIR · CINEMA','#d9f2a2');cinemaSign.position.set(0,12.45,-14.15);cinemaSign.scale.set(5.1,.78,1);
+const cinemaSign=addLabel(cinemaRoot,'OPEN AIR · CINEMA','#d9f2a2');cinemaSign.position.set(0,14.5,-14.15);cinemaSign.scale.set(5.1,.78,1);
 
 // A small garden-bar nook sits outside the center sightline.
 const gardenBar=new THREE.Group();gardenBar.position.set(13,0,-10.8);cinemaRoot.add(gardenBar);
@@ -232,19 +231,19 @@ box(gardenBar,5.2,1.28,1.2,mat('#392a36'),0,.72,0);box(gardenBar,5.45,.2,1.38,ma
 box(gardenBar,5,.09,.1,mat('#65483f',.55),0,.98,.62,false);
 box(gardenBar,4.5,1.35,.13,mat('#24202a'),0,2.08,-.47);
 for(let i=0;i<5;i++){const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.55+(i%2)*.2,8),mat(i%2?'#476e66':'#80604b',.46));bottle.position.set(-1.65+i*.82,2.75,-.39);gardenBar.add(bottle);}
-const gardenBarLabel=addLabel(gardenBar,'GARDEN BAR','#ffd59b');gardenBarLabel.position.set(0,3.25,-.38);gardenBarLabel.scale.set(3.4,.7,1);obstacles.push({x:93,z:-10.8,r:2.85});
+const gardenBarLabel=addLabel(gardenBar,'GARDEN BAR','#ffd59b');gardenBarLabel.position.set(0,3.25,-.38);gardenBarLabel.scale.set(3.4,.7,1);obstacles.push({x:113,z:-10.8,r:2.85});
 
 function makeCinemaChair(x,z,rotation=Math.PI){
   const chair=new THREE.Group();chair.position.set(x,0,z);chair.rotation.y=rotation;cinemaRoot.add(chair);
   const wood=mat('#322932',.72),seatMat=mat('#815959',.62),seat=box(chair,.98,.16,.86,seatMat,0,.78,0);
   box(chair,.98,.82,.16,wood,0,1.18,-.35);for(const sx of [-.38,.38])for(const sz of [-.31,.31])box(chair,.105,.72,.105,wood,sx,.37,sz);
-  seat.userData.station=chair;chair.userData.gameId='seat';chair.userData.name='GHẾ RẠP';chair.userData.room='cinema';chair.userData.seatTarget={x:80+x-Math.sin(rotation)*1.05,z:z-Math.cos(rotation)*1.05};
-  stations.push(chair);obstacles.push({x:80+x,z,r:.5});
+  seat.userData.station=chair;chair.userData.gameId='seat';chair.userData.name='GHẾ RẠP';chair.userData.room='cinema';chair.userData.seatTarget={x:100+x,z};
+  stations.push(chair);obstacles.push({x:100+x,z,r:.5});
 }
 // Auditorium rows: no café tables or side-facing seats. Every chair faces the
 // screen at negative z, with a wide center aisle and clear paths between rows.
-for(const z of [-8,-5.3,-2.6,.1,2.8,5.5,8.2,10.9]){
-  for(const x of [-13,-10,-7,-4,4,7,10,13])makeCinemaChair(x,z,Math.PI);
+for(const z of [-8,-1,6,13,20,27,34,41]){
+  for(const x of [-27,-21,-15,-9,9,15,21,27])makeCinemaChair(x,z,Math.PI);
 }
 
 const swayingPines=[];
@@ -253,20 +252,23 @@ function addPine(x,z,height,scale=1){
   swayingPines.push({tree,phase:x*.8+z*.35});
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.2,.32,height*.38,7),mat('#49353a'));trunk.position.y=height*.19;trunk.castShadow=true;tree.add(trunk);
   for(let tier=0;tier<3;tier++){const cone=new THREE.Mesh(new THREE.ConeGeometry(height*(.3-tier*.055),height*.42,8),mat(tier%2?'#173b3a':'#1c4642',.9));cone.position.y=height*(.4+tier*.22);cone.castShadow=true;tree.add(cone);}
-  obstacles.push({x:80+x,z,r:.72*scale});
+  obstacles.push({x:100+x,z,r:.72*scale});
 }
-for(const [x,z,h,s] of [[-17,-13,8,1.2],[-17,-5,7,1],[-17,4,9,1.2],[-17,16,8,1],[17,-13,8,1.2],[17,-5,7,1],[17,4,9,1.2],[17,16,7,.9],[-10,-15,6,.85],[10,-15,6,.85],[-15,28,9,1.1],[15,28,8,1]])addPine(x,z,h,s);
-for(const x of [-16,16]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,11,8),mat('#49353a'));pole.position.set(x,5.5,11.2);pole.castShadow=true;cinemaRoot.add(pole);obstacles.push({x:80+x,z:11.2,r:.3});}
-const festoonPts=[];for(let i=0;i<=18;i++){const x=-16+i*(32/18);festoonPts.push(new THREE.Vector3(x,10.8-Math.sin(i/18*Math.PI)*.8,11.2));}
+for(const [x,z,h,s] of [[-34,-30,8,1.2],[-34,-10,7,1],[-34,12,9,1.2],[-34,34,8,1],[34,-30,8,1.2],[34,-10,7,1],[34,12,9,1.2],[34,34,7,.9],[-22,-31,6,.85],[22,-31,6,.85],[-30,57,9,1.1],[30,57,8,1]])addPine(x,z,h,s);
+for(const x of [-33,33]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,11,8),mat('#49353a'));pole.position.set(x,5.5,11.2);pole.castShadow=true;cinemaRoot.add(pole);obstacles.push({x:100+x,z:11.2,r:.3});}
+const festoonPts=[];for(let i=0;i<=18;i++){const x=-32+i*(64/18);festoonPts.push(new THREE.Vector3(x,10.8-Math.sin(i/18*Math.PI)*.8,11.2));}
 cinemaRoot.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(festoonPts),new THREE.LineBasicMaterial({color:'#d3b58e',transparent:true,opacity:.68})));
 for(let i=0;i<19;i++){
-  const x=-16+i*(32/18),y=10.8-Math.sin(i/18*Math.PI)*.8,color=i%3===0?'#ffe0a5':'#d8e6b1';
+  const x=-32+i*(64/18),y=10.8-Math.sin(i/18*Math.PI)*.8,color=i%3===0?'#ffe0a5':'#d8e6b1';
   const bulb=new THREE.Mesh(new THREE.SphereGeometry(i%3===0?.12:.085,10,8),mat(color,.22,{emissive:i%3===0?'#ffb86b':'#b1df9c',emissiveIntensity:1.15}));bulb.position.set(x,y,11.2);cinemaRoot.add(bulb);
   if(i%3===0){const glow=new THREE.PointLight(i%2===0?'#ffc47f':'#b5e7be',.46,3);glow.position.set(x,y-.12,11.2);cinemaRoot.add(glow);animatedDecor.push({type:'pulseLight',light:glow,phase:i*.48});}
 }
-const cinemaFireflies=[];for(let i=0;i<22;i++){
-  const color=i%3===0?'#655e4a':i%3===1?'#4c6456':'#4b5f6b',mote=new THREE.Mesh(new THREE.OctahedronGeometry(i%5===0?.12:.075,0),mat(color,.78));
-  const phase=i*1.37,baseY=1.5+(i%5)*.68,rx=11+(i%4)*1.2,rz=7+(i%3)*1.35;mote.position.set(Math.cos(phase)*rx,baseY,Math.sin(phase)*rz);cinemaRoot.add(mote);cinemaFireflies.push({mesh:mote,phase,baseY,rx,rz,speed:.16+(i%4)*.035});
+const cinemaFireflies=[];for(let i=0;i<5;i++){
+  const color=i%2===0?'#d9ff86':'#ffe38a';
+  const mote=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.96}));
+  const halo=new THREE.Mesh(new THREE.SphereGeometry(.2,10,8),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.13,depthWrite:false}));mote.add(halo);
+  const glow=new THREE.PointLight(color,.55,3.8);mote.add(glow);
+  const phase=i*2.4,baseY=1.05+(i%3)*.38,rx=11+(i%3)*1.5,rz=9+(i%2)*3;mote.position.set(Math.cos(phase)*rx,baseY,Math.sin(phase)*rz);cinemaRoot.add(mote);cinemaFireflies.push({mesh:mote,phase,baseY,rx,rz,speed:.07+(i%3)*.012});
 }
 const cinemaExit=new THREE.Group();cinemaExit.position.set(0,0,28);cinemaRoot.add(cinemaExit);
 const cinemaExitRing=new THREE.Mesh(new THREE.TorusGeometry(.72,.1,10,32),mat('#607781',.4,{metalness:.22}));cinemaExitRing.position.y=1.15;cinemaExit.add(cinemaExitRing);
@@ -274,10 +276,7 @@ const cinemaExitBase=box(cinemaExit,1.8,.14,.65,mat('#302d3c'),0,.1,0);cinemaExi
 const cinemaExitLabel=addLabel(cinemaExit,'VỀ SẢNH','#b9f1ff');cinemaExitLabel.position.set(0,2.25,0);
 cinemaExit.userData.gameId='door';cinemaExit.userData.name='CỔNG VỀ SẢNH';cinemaExit.userData.room='cinema';cinemaExit.userData.targetRoom='lounge';cinemaExit.userData.targetPosition={x:-2.35,z:3.6};cinemaExitRing.userData.station=cinemaExit;stations.push(cinemaExit);animatedDecor.push({type:'portal',mesh:cinemaExitRing,phase:1.4});
 
-// Double the outdoor venue horizontally and in depth while preserving height.
-cinemaRoot.scale.set(2,1,2);
-for(let i=cinemaObstacleStart;i<obstacles.length;i++){const o=obstacles[i];if(o.x!==undefined)o.x=80+(o.x-80)*2;if(o.z!==undefined)o.z*=2;if(o.r!==undefined)o.r*=2;if(o.minX!==undefined){o.minX=80+(o.minX-80)*2;o.maxX=80+(o.maxX-80)*2;o.minZ*=2;o.maxZ*=2;}}
-for(let i=cinemaStationStart;i<stations.length;i++){const station=stations[i];if(station.userData.room==='cinema'&&station.userData.seatTarget){station.userData.seatTarget.x=80+(station.userData.seatTarget.x-80)*2;station.userData.seatTarget.z*=2;}}
+// Keep the larger floor dimensions while leaving every prop at its authored scale.
 
 // Low-poly mountain ridges surround the forest, keeping the horizon filled
 // when the camera turns around the larger open-air venue.
@@ -297,26 +296,26 @@ for(let i=0;i<22;i++){
   const peak=new THREE.Mesh(new THREE.ConeGeometry(width,height,6,1),cinemaMountainMats[(i+2)%cinemaMountainMats.length]);
   peak.position.set(Math.cos(angle)*radius,height/2-1,8+Math.sin(angle)*radius);peak.rotation.y=angle*.37;peak.castShadow=true;cinemaRoot.add(peak);
 }
-// A broken shoreline of rocks makes the edge of the deck read as a lake bank.
+// A broken shoreline of rocks traces both sides of the widened deck.
 for(let i=0;i<12;i++){
-  const z=-14+i*4.1,side=i%2?1:-1,size=.75+(i%4)*.22;
+  const z=-27+i*7.5,side=i%2?1:-1,size=.75+(i%4)*.22;
   const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,0),mat(i%2?'#52676a':'#48525e',.96));
-  rock.position.set(side*(18.3+(i%3)*.55),-.05,z);rock.scale.y=.46;rock.rotation.set(i*.31,i*.77,i*.19);rock.castShadow=true;cinemaRoot.add(rock);
+  rock.position.set(side*(40.2+(i%3)*.45),-.05,z);rock.scale.y=.46;rock.rotation.set(i*.31,i*.77,i*.19);rock.castShadow=true;cinemaRoot.add(rock);
 }
 
 // Fire-pit lounge with rough timber seats at the back of the cinema deck.
-const cinemaCampfire=new THREE.Group();cinemaCampfire.position.set(13,0,21.5);cinemaRoot.add(cinemaCampfire);
+const cinemaCampfire=new THREE.Group();cinemaCampfire.position.set(25,0,53);cinemaRoot.add(cinemaCampfire);
 const fireBowl=new THREE.Mesh(new THREE.CylinderGeometry(1.08,1.25,.42,10),mat('#343039',.82,{metalness:.2}));fireBowl.position.y=.24;fireBowl.castShadow=true;cinemaCampfire.add(fireBowl);
 for(let i=0;i<4;i++){const log=new THREE.Mesh(new THREE.CylinderGeometry(.17,.2,1.5,7),mat('#553a30',.92));log.rotation.z=Math.PI/2;log.rotation.y=i*Math.PI/4;log.position.set(Math.cos(i*Math.PI/2)*.2,.48,Math.sin(i*Math.PI/2)*.2);log.castShadow=true;cinemaCampfire.add(log);}
 const campFlame=new THREE.Mesh(new THREE.ConeGeometry(.48,1.2,7),mat('#ff9b42',.28,{emissive:'#ff5b25',emissiveIntensity:1.7}));campFlame.position.y=1.05;cinemaCampfire.add(campFlame);
 const campFlameCore=new THREE.Mesh(new THREE.ConeGeometry(.25,.78,6),mat('#ffe286',.25,{emissive:'#ffb72f',emissiveIntensity:1.8}));campFlameCore.position.y=1.08;cinemaCampfire.add(campFlameCore);
 const campLight=new THREE.PointLight('#ff8c42',2.1,10);campLight.position.y=1.1;cinemaCampfire.add(campLight);animatedDecor.push({type:'campfire',mesh:campFlame,secondary:campFlameCore,light:campLight,phase:1.1});
 for(const [i,angle] of [-Math.PI/2,Math.PI/6,5*Math.PI/6].entries()){
-  const seat=new THREE.Group();seat.position.set(13+Math.cos(angle)*3.05,0,21.5+Math.sin(angle)*3.05);seat.rotation.y=-angle;cinemaRoot.add(seat);
+  const seat=new THREE.Group();seat.position.set(25+Math.cos(angle)*3.05,0,53+Math.sin(angle)*3.05);seat.rotation.y=-angle;cinemaRoot.add(seat);
   const wood=mat(i===1?'#735341':'#604638',.93),bench=new THREE.Mesh(new THREE.CylinderGeometry(.34,.4,2.35,9),wood);bench.rotation.z=Math.PI/2;bench.castShadow=true;bench.position.y=.39;seat.add(bench);
-  obstacles.push({x:80+seat.position.x*2,z:seat.position.z*2,r:1.15});
+  obstacles.push({x:100+seat.position.x,z:seat.position.z,r:1.15});
 }
-obstacles.push({x:80+cinemaCampfire.position.x*2,z:cinemaCampfire.position.z*2,r:2.1});
+obstacles.push({x:100+cinemaCampfire.position.x,z:cinemaCampfire.position.z,r:2.1});
 
 // The bar remains its own separate room and video source.
 const barRoot=new THREE.Group();barRoot.name='quan-bar';barRoot.position.set(40,0,0);scene.add(barRoot);
@@ -578,7 +577,7 @@ function standFromSeat(){
     const chairPosition=seatedStation.getWorldPosition(new THREE.Vector3());
     const chairRotation=seatedStation.getWorldQuaternion(new THREE.Quaternion());
     const facing=new THREE.Vector3(0,0,1).applyQuaternion(chairRotation).normalize();
-    player.position.set(chairPosition.x-facing.x*2.15,0,chairPosition.z-facing.z*2.15);
+    player.position.set(chairPosition.x-facing.x*1.65,0,chairPosition.z-facing.z*1.65);
   }
   seated=false;seatedStation=null;player.scale.y=1;
 }
@@ -592,7 +591,7 @@ function switchRoom(room){
   seated=false;seatedStation=null;player.scale.y=1;
   const copy={lounge:['SẢNH CHILL','Sảnh trò chuyện <span>✳</span>','Ngồi thư giãn, trò chuyện và cùng xem video.'],left:['PHÒNG GAME · TRÁI','Phòng game <span>TRÁI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],right:['PHÒNG GAME · PHẢI','Phòng game <span>PHẢI</span>','Chọn một máy chơi rồi nhấn E để bắt đầu.'],bar:['NIGHT OWL · BAR','Quán bar <span>✦</span>','Nghe nhạc, xem video và ngồi ở quầy bar.'],cinema:['RẠP TRỜI · CHIẾU PHIM','Rạp ngoài trời <span>✦</span>','Chọn ghế, ngồi cùng bạn bè và xem chung trên màn chiếu lớn.']}[activeRoom];
   document.querySelector('#roomEyebrow').textContent=copy[0];document.querySelector('#roomHeading').innerHTML=copy[1];document.querySelector('#roomIntro').textContent=copy[2];
-  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> WASD để đi theo hướng camera · Kéo chuột để xoay góc nhìn. Tới ghế nhấn <b>E</b> để ngồi; video chiếu chung từ jukebox sảnh.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
+  document.querySelector('.room-footnote').innerHTML=activeRoom==='lounge'?'<span>✦</span> Hai cửa bên nối tới phòng game. Hai cổng ở phía trước dẫn tới rạp ngoài trời và quán bar.':activeRoom==='bar'?'<span>✦</span> Đi tới quầy hoặc ghế để tương tác. Cổng xanh đưa bạn về sảnh.':activeRoom==='cinema'?'<span>✦</span> WASD để đi theo hướng camera · Giữ <b>Shift</b> để chạy · Kéo chuột để xoay góc nhìn. Tới ghế nhấn <b>E</b> để ngồi; video chiếu chung từ jukebox sảnh.':'<span>✦</span> Đi lại gần máy chơi rồi nhấn E. Qua cửa để trở lại sảnh.';
   projectionHint.innerHTML=activeRoom==='cinema'?'<span>▶</span><b>RẠP NGOÀI TRỜI</b><small>Video chung đang được chiếu từ jukebox sảnh</small>':'<span>▶</span><b>CHILL SCREEN</b><small>Thêm nhạc trong jukebox để chiếu video tại đây</small>';
   window.dispatchEvent(new CustomEvent('choigi-room-changed',{detail:{room:activeRoom}}));updateNearby();
 }
@@ -615,7 +614,7 @@ function openStation(station) {
   else if(station.userData.gameId==='seat'){
     playerVelocity.set(0,0);keys.clear();
     if(seated){standFromSeat();}
-    else{seated=true;seatedStation=station;player.position.set(station.userData.seatTarget.x,0,station.userData.seatTarget.z);player.scale.y=.76;}
+    else{seated=true;seatedStation=station;player.position.set(station.userData.seatTarget.x,.43,station.userData.seatTarget.z);player.rotation.y=station.rotation.y;player.scale.y=.76;}
     updateNearby();
   } else window.openGame(station.userData.gameId);
 }
@@ -698,7 +697,7 @@ document.addEventListener('keydown', e => {
     if (socialOverlay) socialOverlay.hidden = false;
     return;
   }
-  if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter'].includes(k)) e.preventDefault();
+  if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','e','enter','shift'].includes(k)) e.preventDefault();
   if (k === 'e' || k === 'enter') tryInteract(); else keys.add(k);
 });
 document.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
@@ -726,7 +725,7 @@ function animate() {
     if(seated)standFromSeat();
     const len = Math.hypot(dx, dz); dx /= len; dz /= len;
   } else { dx=0;dz=0; }
-  const maxSpeed=4.4,response=inputActive&&canMove?9.5:12.5,blend=1-Math.exp(-response*dt);
+  const maxSpeed=activeRoom==='cinema'?(keys.has('shift')?8.2:4.4):4.4,response=inputActive&&canMove?9.5:12.5,blend=1-Math.exp(-response*dt);
   playerVelocity.x=THREE.MathUtils.lerp(playerVelocity.x,dx*maxSpeed,blend);
   playerVelocity.y=THREE.MathUtils.lerp(playerVelocity.y,dz*maxSpeed,blend);
   if(Math.abs(playerVelocity.x)<0.015)playerVelocity.x=0;
@@ -741,8 +740,8 @@ function animate() {
     circleHitsRect(x,z,wall-0.21,wall+0.21,-9,-1.4)||
     circleHitsRect(x,z,wall-0.21,wall+0.21,1.4,9));
   const blocked=(x,z)=>obstacles.some(o=>o.minX!==undefined?circleHitsRect(x,z,o.minX,o.maxX,o.minZ,o.maxZ):Math.hypot(x-o.x,z-o.z)<o.r+radius)||hitsDivider(x,z);
-  const xMin=activeRoom==='bar'?30.1:activeRoom==='cinema'?44.4:-14,xMax=activeRoom==='bar'?49.9:activeRoom==='cinema'?115.6:14;
-  const zMin=activeRoom==='cinema'?-31.2:-8,zMax=activeRoom==='cinema'?63.2:8;
+  const xMin=activeRoom==='bar'?30.1:activeRoom==='cinema'?64.3:-14,xMax=activeRoom==='bar'?49.9:activeRoom==='cinema'?135.7:14;
+  const zMin=activeRoom==='cinema'?-15.5:-8,zMax=activeRoom==='cinema'?31.5:8;
   const nextX=THREE.MathUtils.clamp(player.position.x+playerVelocity.x*dt,xMin,xMax);
   const nextZ=THREE.MathUtils.clamp(player.position.z+playerVelocity.y*dt,zMin,zMax);
   if(!blocked(nextX,player.position.z))player.position.x=nextX;else playerVelocity.x=0;
@@ -772,13 +771,13 @@ function animate() {
   cinemaMoonLight.intensity=.65+.12*Math.sin(t*.42);
   cinemaMoon.material.emissiveIntensity=.32+.05*Math.sin(t*.42);
   for(const item of animatedDecor){if(item.type==='leaf')item.mesh.rotation.z=item.base+Math.sin(t*1.1+item.phase)*0.075;else if(item.type==='record')item.mesh.rotation.z=t*1.7;else if(item.type==='neon')item.mesh.material.emissiveIntensity=0.75+Math.sin(t*2+item.phase)*0.35;else if(item.type==='pulseLight')item.light.intensity=0.28+Math.max(0,Math.sin(t*2+item.phase))*0.55;else if(item.type==='portal'){item.mesh.rotation.z=t*0.16;item.mesh.scale.setScalar(1+Math.sin(t*2.2+item.phase)*0.055);}else if(item.type==='barBeam')item.light.intensity=0.7+Math.max(0,Math.sin(t*2+item.phase))*1.8;else if(item.type==='cinemaSpot')item.light.intensity=1.35+Math.max(0,Math.sin(t*1.3+item.phase))*1.1;else if(item.type==='campfire'){item.mesh.scale.y=.78+.16*Math.sin(t*8+item.phase);item.secondary.rotation.y=t*1.7;item.light.intensity=1.6+Math.random()*.65;}}
-  for(const mote of cinemaFireflies){const a=t*mote.speed+mote.phase;mote.mesh.position.set(Math.cos(a)*mote.rx,mote.baseY+Math.sin(t*1.2+mote.phase)*.3,Math.sin(a*.8)*mote.rz);mote.mesh.rotation.y=a;}
+  for(const mote of cinemaFireflies){const a=t*mote.speed+mote.phase;mote.mesh.position.set(Math.cos(a)*mote.rx,mote.baseY+Math.sin(t*.62+mote.phase)*.16,Math.sin(a*.72)*mote.rz);mote.mesh.scale.setScalar(.82+Math.max(0,Math.sin(t*1.8+mote.phase))*.55);}
   for(const pine of swayingPines)pine.tree.rotation.z=Math.sin(t*.55+pine.phase)*.014;
   for(const mote of fireflies){const a=t*mote.speed+mote.phase;mote.mesh.position.set(Math.cos(a)*mote.radiusX,mote.baseY+Math.sin(t*1.3+mote.phase)*0.34,Math.sin(a*0.82)*mote.radiusZ);mote.mesh.rotation.x=a;mote.mesh.rotation.y=a*0.7;}
   fan.rotation.y=t*0.48;
   screenLight.intensity=0.9+Math.sin(t*1.4)*0.22;
   orb.position.y=1.05+Math.sin(t*1.6)*0.17;
-  player.position.y = moving ? Math.abs(Math.sin(walkPhase*2)) * Math.min(0.055,speed*0.012) : Math.sin(t * 1.6) * 0.014;
+  player.position.y = seated ? .43 : moving ? Math.abs(Math.sin(walkPhase*2)) * Math.min(0.055,speed*0.012) : Math.sin(t * 1.6) * 0.014;
   legs.forEach((leg, i) => { leg.rotation.x = moving ? Math.sin(walkPhase + i * Math.PI) * 0.38 : THREE.MathUtils.damp(leg.rotation.x,0,9,dt); });
   arms.forEach(({arm,side}) => { arm.rotation.x = moving ? Math.sin(walkPhase + (side > 0 ? Math.PI : 0)) * 0.3 : THREE.MathUtils.damp(arm.rotation.x,0,8,dt); });
   for(const avatar of remotePlayers.values()){
@@ -811,7 +810,7 @@ function animate() {
   };
   const inBar=activeRoom==='bar';
   projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,activeRoom==='lounge');
-  projectScreen(cinemaScreenGroup,8.31,4.52,projectionFrame,activeRoom==='cinema',.4);
+  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema',.4);
   projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,inBar);
   renderer.render(scene, camera);
 }
