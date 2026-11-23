@@ -960,8 +960,8 @@ function animate() {
     if(!enabled||cameraSpace.z<=planeZ+.08){frame.style.display='none';return;}
     // CSS perspective mapping expects top-left, top-right, bottom-right,
     // bottom-left. The old order started at bottom-left and flipped the video.
-    const top=flipY?-h:h,bottom=-top;
-    const corners=[new THREE.Vector3(-w,top,planeZ),new THREE.Vector3(w,top,planeZ),new THREE.Vector3(w,bottom,planeZ),new THREE.Vector3(-w,bottom,planeZ)].map(v=>screen.localToWorld(v).project(camera));
+    const worldTop=flipY?-h:h,worldBottom=-worldTop;
+    const corners=[new THREE.Vector3(-w,worldTop,planeZ),new THREE.Vector3(w,worldTop,planeZ),new THREE.Vector3(w,worldBottom,planeZ),new THREE.Vector3(-w,worldBottom,planeZ)].map(v=>screen.localToWorld(v).project(camera));
     const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2})),[p1,p2,p3,p4]=px;
     const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));
     const width=1000,height=width*h/w,dx1=p2.x-p3.x,dx2=p4.x-p3.x,dx3=p1.x-p2.x+p3.x-p4.x,dy1=p2.y-p3.y,dy2=p4.y-p3.y,dy3=p1.y-p2.y+p3.y-p4.y,den=dx1*dy2-dx2*dy1;
