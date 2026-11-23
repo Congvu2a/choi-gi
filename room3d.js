@@ -952,14 +952,15 @@ function animate() {
   if(performance.now()-lastPositionPublish>100){lastPositionPublish=performance.now();const carWorld=drivingCar?raceCar.getWorldPosition(new THREE.Vector3()):null;window.dispatchEvent(new CustomEvent('choigi-player-position',{detail:{x:carWorld?.x??player.position.x,z:carWorld?.z??player.position.z,outfit:currentOutfitId,inCar:drivingCar,vehicleX:carWorld?.x??raceCar.getWorldPosition(new THREE.Vector3()).x,vehicleZ:carWorld?.z??raceCar.getWorldPosition(new THREE.Vector3()).z,vehicleYaw:raceCar.rotation.y,speed:vehicleSpeed}}));}
   // Keep the real YouTube iframe aligned with the perspective-projected 3D screen.
   const rect=host.getBoundingClientRect();
-  const projectScreen=(screen,w,h,frame,enabled,planeZ=.23)=>{
+  const projectScreen=(screen,w,h,frame,enabled,planeZ=.23,flipY=false)=>{
     const cameraSpace=screen.worldToLocal(camera.position.clone());
     // The DOM video is a front-face overlay on the physical screen. Hiding it
     // from the back prevents a second, mirrored image appearing behind it.
     if(!enabled||cameraSpace.z<=planeZ+.08){frame.style.display='none';return;}
     // CSS perspective mapping expects top-left, top-right, bottom-right,
     // bottom-left. The old order started at bottom-left and flipped the video.
-    const corners=[new THREE.Vector3(-w,h,planeZ),new THREE.Vector3(w,h,planeZ),new THREE.Vector3(w,-h,planeZ),new THREE.Vector3(-w,-h,planeZ)].map(v=>screen.localToWorld(v).project(camera));
+    const top=flipY?-h:h,bottom=-top;
+    const corners=[new THREE.Vector3(-w,top,planeZ),new THREE.Vector3(w,top,planeZ),new THREE.Vector3(w,bottom,planeZ),new THREE.Vector3(-w,bottom,planeZ)].map(v=>screen.localToWorld(v).project(camera));
     const px=corners.map(v=>({x:(v.x+1)*rect.width/2,y:(1-v.y)*rect.height/2})),[p1,p2,p3,p4]=px;
     const left=Math.min(...px.map(p=>p.x)),top=Math.min(...px.map(p=>p.y)),right=Math.max(...px.map(p=>p.x)),bottom=Math.max(...px.map(p=>p.y));
     const width=1000,height=width*h/w,dx1=p2.x-p3.x,dx2=p4.x-p3.x,dx3=p1.x-p2.x+p3.x-p4.x,dy1=p2.y-p3.y,dy2=p4.y-p3.y,dy3=p1.y-p2.y+p3.y-p4.y,den=dx1*dy2-dx2*dy1;
@@ -974,7 +975,7 @@ function animate() {
   projectScreen(videoScreenGroup,5.375,2.74,projectionFrame,activeRoom==='lounge');
   const cinemaCameraLocal=cinemaScreenGroup.worldToLocal(camera.position.clone());
   cinemaScreenGroup.visible=activeRoom==='cinema'&&cinemaCameraLocal.z>.08;
-  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema'&&cinemaScreenGroup.visible,.4);
+  projectScreen(cinemaScreenGroup,10.5,5.91,projectionFrame,activeRoom==='cinema'&&cinemaScreenGroup.visible,.4,true);
   projectScreen(barScreenGroup,4.775,2.51,barProjectionFrame,inBar);
   renderer.render(scene, camera);
 }
