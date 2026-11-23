@@ -269,7 +269,7 @@ function addCinemaDoor(parent,x,z,label,targetRoom,targetPosition,color='#d6ff72
   door.userData.gameId='door';door.userData.name=label;door.userData.room='cinema';door.userData.targetRoom=targetRoom;door.userData.targetPosition=targetPosition;base.userData.station=door;stations.push(door);animatedDecor.push({type:'portal',mesh:ring,phase:z});return door;
 }
 addCinemaDoor(cinemaRoot,0,61.5,'ĐƯỜNG ĐUA','race',{x:103,z:110},'#d6ff72');
-const rearGuide=addLabel(cinemaRoot,'ĐI RA SAU · RẼ TRÁI TỚI TỦ ĐỒ · ĐI THẲNG TỚI SÂN ĐUA','#d6ff72');rearGuide.position.set(0,2.55,45);rearGuide.scale.set(8.2,.82,1);
+const rearGuide=addLabel(cinemaRoot,'TỦ ĐỒ ←     ·     SÂN ĐUA ↑','#d6ff72');rearGuide.position.set(0,2.25,45);rearGuide.scale.set(4.2,.46,1);
 const rearPathMat=mat('#d6ff72',.22,{emissive:'#b3f45c',emissiveIntensity:1.45}),wardrobePathMat=mat('#a9eaff',.22,{emissive:'#7bdcff',emissiveIntensity:1.25});
 for(const z of [46,49,52,55,58]){const marker=box(cinemaRoot,.48,.035,.48,rearPathMat,0,.035,z,false);marker.rotation.y=Math.PI/4;}
 for(const [x,z] of [[-7,48],[-14,49],[-21,51],[-27,52]]){const marker=box(cinemaRoot,.42,.035,.42,wardrobePathMat,x,.035,z,false);marker.rotation.y=Math.PI/4;}
@@ -361,17 +361,17 @@ cinemaExit.userData.gameId='door';cinemaExit.userData.name='CỔNG VỀ SẢNH';
 // when the camera turns around the larger open-air venue.
 const cinemaMountainMats=['#17283a','#1b3038','#20373a','#1a2638'].map(color=>mat(color,.98));
 for(let i=0;i<17;i++){
-  const side=i%2?1:-1,index=Math.floor(i/2),x=side*(22+(index%3)*7),z=-34+index*8.5,height=9+(index%4)*2.5,radius=8+(index%3)*2.2;
+  const side=i%2?1:-1,index=Math.floor(i/2),x=side*(78+(index%3)*8),z=-48+index*13,height=12+(index%4)*3,radius=10+(index%3)*3;
   const peak=new THREE.Mesh(new THREE.ConeGeometry(radius,height,6,1),cinemaMountainMats[i%cinemaMountainMats.length]);peak.position.set(x,height/2-1,z);peak.rotation.y=(i%5)*.38;peak.castShadow=true;cinemaRoot.add(peak);
 }
 for(let i=0;i<8;i++){
-  const x=-30+i*8.5,z=i%2?-39:38,height=11+(i%3)*3.2;
+  const x=-80+i*23,z=i%2?-74:78,height=14+(i%3)*3.2;
   const ridge=new THREE.Mesh(new THREE.ConeGeometry(10+(i%2)*2,height,5,1),cinemaMountainMats[(i+1)%cinemaMountainMats.length]);ridge.position.set(x,height/2-1,z);ridge.castShadow=true;cinemaRoot.add(ridge);
 }
 // A complete low-poly ridge around the lake keeps mountains visible from
 // every camera angle, including the newly extended rear garden.
 for(let i=0;i<22;i++){
-  const angle=(i/22)*Math.PI*2,radius=47+(i%3)*3.2,height=12+(i%5)*2.4,width=10+(i%4)*1.5;
+  const angle=(i/22)*Math.PI*2,radius=88+(i%3)*8,height=15+(i%5)*3,width=12+(i%4)*2;
   const peak=new THREE.Mesh(new THREE.ConeGeometry(width,height,6,1),cinemaMountainMats[(i+2)%cinemaMountainMats.length]);
   peak.position.set(Math.cos(angle)*radius,height/2-1,8+Math.sin(angle)*radius);peak.rotation.y=angle*.37;peak.castShadow=true;cinemaRoot.add(peak);
 }
@@ -907,7 +907,6 @@ function animate() {
     const followDistance=drivingCar?20:16,lookAhead=drivingCar?9:6.5,horizontal=followDistance*Math.cos(cinemaCameraPitch),forwardX=drivingCar?-Math.sin(raceCar.rotation.y)-Math.sin(cinemaCameraYaw)*.48:-Math.sin(cinemaCameraYaw),forwardZ=drivingCar?-Math.cos(raceCar.rotation.y)-Math.cos(cinemaCameraYaw)*.48:-Math.cos(cinemaCameraYaw);
     cameraGoal.set(focus.x-forwardX*horizontal,focus.y+followDistance*Math.sin(cinemaCameraPitch),focus.z-forwardZ*horizontal);
     lookGoal.set(focus.x+forwardX*lookAhead,focus.y+(drivingCar?1.2:2.0),focus.z+forwardZ*lookAhead);
-    if(activeRoom==='cinema'&&!drivingCar){const screenZ=cinemaRoot.position.z+cinemaScreenGroup.position.z;if(Math.abs(cameraGoal.x-cinemaRoot.position.x)<13.2&&cameraGoal.z<screenZ+2.1)cameraGoal.z=screenZ+2.1;}
   }else{
     cameraGoal.set(player.position.x,player.position.y+14.2,player.position.z+22.55);
     lookGoal.set(player.position.x,player.position.y+2.1,player.position.z-3.45);
